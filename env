@@ -1,0 +1,36 @@
+# Configurações do banco de dados (Prisma/PostgreSQL)
+DATABASE_URL="postgresql://docker:docker@127.0.0.1:5432/cineflick_dev"
+
+
+
+# Configurações do QPanel
+QPANEL_URL='https://cineflick2.sigma.st/#/sign-in'
+QPANEL_USERNAME='adm-cineflick'
+QPANEL_PASSWORD="@w9LwL3LCz57b4fe#"
+
+TELEGRAM_BOT_TOKEN='8064327272:AAF095L22IeoFzksDRkID4oNQUF_cePjgsg'
+TELEGRAM_BOT_PAGAMENTOS="8013205782:AAHG7pJiWt5h6W4Kz0GbTaHZmTliXLQiRME"
+TELEGRAM_CHAT_ID=-1002191753351
+# Configurações de Redi
+
+REDIS_URL=redis://localhost:6379
+
+
+
+
+
+# Configurações de email (SMTP) usando Umbler
+
+MAILERLITE_API_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiYTU5YjIxYTI2YzBmMmU2ZjdkNzNkZTgyZjQ0N2QwNzNjYzAxZDg5MmYxZTgyYWFiNjYyMzM5ZTYxZDU4MmI3MzE0MzU2N2E4ZDIyODIzNGUiLCJpYXQiOjE3MzM3MDQxNDMuMzYyOTEyLCJuYmYiOjE3MzM3MDQxNDMuMzYyOTE0LCJleHAiOjQ4ODkzNzc3NDMuMzU4NzgzLCJzdWIiOiIxMjM2Mzg3Iiwic2NvcGVzIjpbXX0.rKNl7wvo8oXxHRcl3N5PuZ0YlrBaqBrmUpaJevRVJnHkG_abvNNuUzvcs6uK25VJDhgzc42Ek0-6dVf2BQ-PngbC5S8jKqnzJ29p6TO6oGFDXvjvTdlyl33I9jviBaiUXePT7JF8PoKfQMUnFMpclTGwG3K46lh8ytC8bA0Gh9iNlLf4AgimHAM2e-li9SbvzzcvqIcguNdS__WUmjumLS3c-TPXbpNRHqxcc5JYqNkPE_y4QygL-i4NHON2vj-pmiFqgK_V_aVHTy4kg9nibGgNhsPUsGsJ7jFIZgPOn0stxwbz9-zNLn_QebuTeduOivOzKVQoYT513J4xiB2hwRSJXpgzPtTOu3JFviPgKup946u_XVsOrkq8Jrre4vxjYa4-Y-Vr7ZFDyKN8-J5aKgwGXdIW0TwnuFiUeFOptWWa5SpsmIAeEKF7JlEbtWby9hx_SnlHmu8DvlxfqqHnCgfgsqAKDZ7EeBd4vZZStlfuehY1ybHh2OlHYPCDLMX8kJPiY6VXSmYW0Aj41EFL_LSdN9tBCPjoHvZNS7jVROhATo28_cJ3yhRqPwO-9LbSkKTsQb0ek7xIFB7i_FQmcjjzI2bLX2bG414pCNIdt8m_28_TwjxYvge-uLGpP9UMWmvfKU-B_3p9RT2ucwAganL-sSllFVYnyir5Fy3e_Cw
+
+
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+
+
+
+
+
+
+URL_DO_WEBHOOK_BRAIP=https://cineflick-8634f9e4db0a.herokuapp.com/api/v1/webhook

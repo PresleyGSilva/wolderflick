@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "UsuarioQpanel" ALTER COLUMN "atualizadoEm" DROP NOT NULL,
+ALTER COLUMN "atualizadoEm" SET DEFAULT CURRENT_TIMESTAMP;

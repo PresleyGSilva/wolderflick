@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Venda {
+  id               String         @id @default(uuid())
+  plataforma       String
+  senha            String?
+  nome             String
+  email            String
+  emailAfiliado    String?
+  cpf              String
+  celular          String
+  produto          String
+  processada       Boolean        @default(false)
+  processaWhats    Boolean        @default(false)
+  transKey         String?
+  transStatus      String
+  transValue       Float?
+  transPayment     Float?
+  transPaymentUrl  String?
+  transPaymentDate DateTime?
+  criadoEm         DateTime       @default(now())
+  usuarioQpanelId  String?
+  usuarioQpanel    UsuarioQpanel? @relation(fields: [usuarioQpanelId], references: [id])
+}
+
+model FilaEmail {
+  id        String      @id @default(uuid())
+  email     String
+  assunto   String
+  mensagem  String
+  status    StatusEmail
+  cretries  Int         @default(0)
+  usuarioId String
+}
+
+model UsuarioQpanel {
+  id              String    @id @default(uuid())
+  nome            String
+  email           String    @unique
+  senha           String
+  criadoEm        DateTime  @default(now())
+  package_id      String?
+  atualizadoEm    DateTime? @default(now())
+  dataExpiracao   DateTime
+  enviadoTelegram Boolean   @default(false)
+  celular         String    @default("N/A")
+  ultimaRenovacao DateTime? @db.Timestamp(6)
+  vendas          Venda[]
+
+  @@map("usuarios_qpanel")
+}
+
+model afiliado {
+  id      String   @id
+  nome    String
+  numero  String   @unique
+  criado  DateTime @default(now())
+  chip    String?
+  enviado Boolean  @default(false)
+}
+
+enum Plataforma {
+  BRAIP
+  KIRVANO
+  MONETIZZE
+}
+
+enum Status {
+  PENDENTE
+  APROVADO
+  CANCELADO
+  REEMBOLSADO
+}
+
+enum StatusEmail {
+  PENDENTE
+  ENVIADO
+  FALHOU
+}

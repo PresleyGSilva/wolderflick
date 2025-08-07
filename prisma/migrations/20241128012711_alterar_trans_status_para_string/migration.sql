@@ -1,0 +1,3 @@
+ALTER TABLE "Venda" ALTER COLUMN "transStatus" DROP NOT NULL;
+ALTER TABLE "Venda" ALTER COLUMN "transStatus" TYPE TEXT USING "transStatus"::TEXT;
+ALTER TABLE "Venda" ALTER COLUMN "transStatus" SET NOT NULL;

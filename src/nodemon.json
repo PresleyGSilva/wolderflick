@@ -1,0 +1,5 @@
+{
+  "watch": ["src"],
+  "ignore": ["src/telegram", "src/routes"],
+  "ext": "js,json,env"
+}

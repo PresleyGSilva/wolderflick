@@ -1,0 +1,11 @@
+node_modules/
+<<<<<<< HEAD
+# Keep environment variables out of version control
+.env
+node_modules/
+.env
+=======
+.env
+# Keep environment variables out of version control
+
+>>>>>>> developer
