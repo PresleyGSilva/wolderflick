@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const prisma = new PrismaClient();
 
-const API_URL = 'https://cineflick2.sigma.st/api/webhook';
+const API_URL = 'https://ironplay.sigmab.pro/api/webhook';
 const API_TOKEN = process.env.API_TOKEN;
 const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
 
