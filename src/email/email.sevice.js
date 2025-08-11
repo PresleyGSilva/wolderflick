@@ -19,7 +19,6 @@ function createTransporter() {
   });
 }
 
-// Função para enviar confirmação de renovação
 async function enviarConfirmacaoRenovacao(email, dadosConfirmacao) {
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     console.error('❌ Erro: Nenhum e-mail válido foi passado para o envio da renovação!', email);
@@ -31,27 +30,77 @@ async function enviarConfirmacaoRenovacao(email, dadosConfirmacao) {
     return;
   }
 
-  const mensagem = `
-✅ *Usuário:* ${dadosConfirmacao.usuario}
-🗓️ *Próximo Vencimento:* ${dadosConfirmacao.proximoVencimento}
+  const htmlMensagem = `
+  <div style="
+    font-family: Arial, sans-serif; 
+    font-size: 16px; 
+    color: #fff; 
+    background-color: #1e4427; /* fundo com cor da logo */
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 350px;
+    margin: auto;
+  ">
+    <div style="text-align:center; margin-bottom: 20px;">
+      <img src="cid:logoironplay" alt="IronPlay" style="width:150px; height:auto;" />
+    </div>
+    <p style="color: #a5d6a7; font-weight: bold; margin: 10px 0;">
+      ✅ Usuário: ${dadosConfirmacao.usuario}
+    </p>
+    <p style="color: #cfd8dc; font-weight: bold; margin: 10px 0;">
+      🗓️ Próximo Vencimento: ${dadosConfirmacao.proximoVencimento}
+    </p>
+    <hr style="border: 1px solid #2D9C28; margin: 20px 0;" />
+    <p style="margin: 10px 0;">
+      Obrigado por continuar conosco! Qualquer dúvida, estamos à disposição.
+    </p>
+
+    <div style="margin-top: 30px; text-align: center;">
+      <h3 style="color: #e53935; margin-bottom: 15px;">🔴 Suporte</h3>
+      <a href="https://wa.me/message/6RHNBJB7PCIPN1" 
+         style="
+           display: inline-block; 
+           background-color: #2D9C28; 
+           color: white; 
+           padding: 12px 24px; 
+           text-decoration: none; 
+           border-radius: 5px; 
+           font-weight: bold;
+           font-size: 16px;
+           ">
+        📱 Clique aqui para falar no WhatsApp
+      </a>
+    </div>
+  </div>
 `;
 
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: transporter.options.auth.user,
-    to: email,
-    subject: 'Confirmação de Renovação de Assinatura',
-    text: mensagem,
-  };
 
   try {
+    const transporter = await createTransporter();
+
+    const mailOptions = {
+      from: transporter.options.auth.user,
+      to: email,
+      subject: 'Confirmação de Renovação de Assinatura',
+      text: `Usuário: ${dadosConfirmacao.usuario}\nPróximo Vencimento: ${dadosConfirmacao.proximoVencimento}`,
+      html: htmlMensagem,
+      attachments: [
+        {
+          filename: 'ironplay-logo.png',
+          path: './ironplay-logo.png',
+          cid: 'logoironplay'
+        }
+      ]
+    };
+
     await transporter.sendMail(mailOptions);
-    console.log('📩 E-mail enviado com sucesso para:', email);
+    console.log(`📩 E-mail de confirmação de renovação enviado com sucesso para: ${email}`);
   } catch (error) {
-    console.error('❌ Erro ao enviar o e-mail:', error);
+    console.error('❌ Erro ao enviar o e-mail de confirmação de renovação:', error);
   }
 }
+
+
 
 // Função genérica para envio de e-mail
 async function enviarEmailGenerico(mailOptions) {
@@ -70,101 +119,164 @@ async function logiNenviarEmail(email, username, password, plano, created_at, ex
   const preco = "R$ 0,00";
 
   const corpoHtml = `
-  <!DOCTYPE html>
-  <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Seu Acesso ao IronPlay</title>
-    <style>
-      body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px; }
-      .container { background: #fff; max-width: 700px; margin: auto; padding: 20px; border: 1px solid #ddd; }
-      .header, .footer { text-align: center; }
-      .footer { font-size: 12px; color: #999; margin-top: 30px; }
-      h1 { text-align: center; color: #007bff; }
-      .info p { font-size: 16px; margin: 6px 0; }
-      .section { margin-top: 25px; }
-      a.btn { display: inline-block; padding: 10px 15px; background: #007bff; color: #fff; border-radius: 5px; text-decoration: none; margin: 10px 0; }
-      a.btn:hover { background: #0056b3; }
-      a.whatsapp-btn { background: #25D366 !important; font-weight: bold; }
-      code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 250px; height: auto;" />
-      </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seu Acesso ao IronPlay</title>
+  <style>
+  body { 
+    font-family: Arial, sans-serif; 
+    background: #f7f7f7; /* fundo claro neutro */
+    padding: 20px; 
+    margin: 0;
+  }
+  .container { 
+    background: #1e4427; /* fundo com cor da logo */
+    max-width: 700px; 
+    margin: auto; 
+    padding: 20px; 
+    border-radius: 12px;
+    color: white; /* texto branco padrão */
+    box-sizing: border-box;
+    border: none; 
+  }
+  .header, .footer { 
+    text-align: center; 
+  }
+  .footer { 
+    font-size: 12px; 
+    color: #ccc; 
+    margin-top: 30px; 
+  }
+  h1 { 
+    text-align: center; 
+    color: #a5d6a7; /* tom verde claro para título */
+  }
+  /* Padrão dos parágrafos */
+  .info p, .section p {
+    font-size: 16px; 
+    margin: 6px 0; 
+    color: white; /* texto branco */
+  }
+  /* Negrito e preto para strong dentro de p */
+  .info p strong, .section p strong {
+    font-weight: bold;
+    color: black;
+  }
+  /* h3 em negrito e preto */
+  h3 {
+    font-weight: bold;
+    color: black;
+  }
+  .section { 
+    margin-top: 25px; 
+  }
+  a.btn { 
+    display: inline-block; 
+    padding: 10px 15px; 
+    background: #2D9C28; /* verde do botão */
+    color: #fff; 
+    border-radius: 5px; 
+    text-decoration: none; 
+    margin: 10px 0; 
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  a.btn:hover { 
+    background: #1b6a17; 
+  }
+  a.whatsapp-btn { 
+    background: #25D366 !important; 
+  }
+  code { 
+    background: #144d11; /* fundo escuro para código */
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    color: #c8f7c5;
+    font-weight: bold;
+  }
+</style>
 
-      <h1>Seu Acesso ao IronPlay</h1>
-
-      <div class="info">
-        <p><strong>✅ Usuário:</strong> ${username}</p>
-        <p><strong>✅ Senha:</strong> ${password}</p>
-        <p><strong>📦 Plano:</strong> ${plano}</p>
-        <p><strong>💵 Preço do Plano:</strong> ${preco}</p>
-        <p><strong>🗓️ Criado em:</strong> ${created_at}</p>
-        <p><strong>🗓️ Vencimento:</strong> ${expires_at}</p>
-        <p><strong>📶 Conexões:</strong> ${conexoes}</p>
-      </div>
-
-      <div class="section">
-        <h3>🔴 Suporte</h3>
-        <p><a href="https://wa.me/message/6RHNBJB7PCIPN1" class="btn whatsapp-btn">📱 Clique aqui para falar no WhatsApp</a></p>
-      </div>
-
-      <div class="section">
-        <h3>🔸 Link direto Dispositivos Android</h3>
-        <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron1.apk">Baixar App 1</a></p>
-        <p><strong>Cód. Downloader:</strong> 4032041</p>
-        <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron2.apk">Baixar App 2</a></p>
-        <p><strong>Cód. Downloader:</strong> 9581295</p>
-      </div>
-
-      <div class="section">
-        <h3>🟠 DNS XCIPTV</h3>
-        <p><code>http://u2xayz.shop</code></p>
-        <p><code>http://1q2s.shop</code></p>
-      </div>
-
-      <div class="section">
-        <h3>🟠 DNS SMARTERS</h3>
-        <p><code>http://u2xayz.shop</code></p>
-        <p><code>http://1q2s.shop</code></p>
-      </div>
-
-      <div class="section">
-        <h3>🟣 Assist Plus - Roku, LG, Samsung e Android</h3>
-        <p><strong>Cod:</strong> 34985687</p>
-        <p><strong>Usuário:</strong> ${username}</p>
-        <p><strong>Senha:</strong> ${password}</p>
-      </div>
-
-      <div class="section">
-        <h3>🟢 Link M3U</h3>
-        <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=mpegts</code></p>
-        <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/m3u</code></p>
-      </div>
-
-      <div class="section">
-        <h3>🟡 Link HLS</h3>
-        <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=hls</code></p>
-        <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/hls</code></p>
-      </div>
-
-      <div class="section">
-        <h3>🔴 Link SSIPTV</h3>
-        <p><code>http://e.1q2s.shop/p/${username}/${password}/ssiptv</code></p>
-      </div>
-
-      <div class="footer">
-        <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 120px;" />
-        <p>IronPlay © ${new Date().getFullYear()}. Todos os direitos reservados.</p>
-      </div>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 250px; height: auto;" />
     </div>
-  </body>
-  </html>
-  `;
+
+    <h1>Agradecemos a preferência</h1>
+
+    <div class="info">
+      <p><strong>✅ Usuário:</strong> ${username}</p>
+      <p><strong>✅ Senha:</strong> ${password}</p>
+      <p><strong>📦 Plano:</strong> ${plano}</p>
+      <p><strong>💵 Preço do Plano:</strong> ${preco}</p>
+      <p><strong>🗓️ Criado em:</strong> ${created_at}</p>
+      <p><strong>🗓️ Vencimento:</strong> ${expires_at}</p>
+      <p><strong>📶 Conexões:</strong> ${conexoes}</p>
+    </div>
+
+    <div class="section">
+      <h3>🔴 Suporte</h3>
+      <p><a href="https://wa.me/message/6RHNBJB7PCIPN1" class="btn whatsapp-btn">📱 Clique aqui para falar no WhatsApp</a></p>
+    </div>
+
+    <div class="section">
+      <h3>🔸 Link direto Dispositivos Android</h3>
+      <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron1.apk">Baixar App 1</a></p>
+      <p><strong>Cód. Downloader:</strong> 4032041</p>
+      <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron2.apk">Baixar App 2</a></p>
+      <p><strong>Cód. Downloader:</strong> 9581295</p>
+    </div>
+
+    <div class="section">
+      <h3>🟠 DNS XCIPTV</h3>
+      <p><code>http://u2xayz.shop</code></p>
+      <p><code>http://1q2s.shop</code></p>
+    </div>
+
+    <div class="section">
+      <h3>🟠 DNS SMARTERS</h3>
+      <p><code>http://u2xayz.shop</code></p>
+      <p><code>http://1q2s.shop</code></p>
+    </div>
+
+    <div class="section">
+      <h3>🟣 Assist Plus - Roku, LG, Samsung e Android</h3>
+      <p><strong>Cod:</strong> 34985687</p>
+      <p><strong>Usuário:</strong> ${username}</p>
+      <p><strong>Senha:</strong> ${password}</p>
+    </div>
+
+    <div class="section">
+      <h3>🟢 Link M3U</h3>
+      <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=mpegts</code></p>
+      <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/m3u</code></p>
+    </div>
+
+    <div class="section">
+      <h3>🟡 Link HLS</h3>
+      <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=hls</code></p>
+      <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/hls</code></p>
+    </div>
+
+    <div class="section">
+      <h3>🔴 Link SSIPTV</h3>
+      <p><code>http://e.1q2s.shop/p/${username}/${password}/ssiptv</code></p>
+    </div>
+
+    <div class="footer">
+      <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 120px;" />
+      <p>IronPlay © ${new Date().getFullYear()}. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  
 
   const transporter = await createTransporter();
 
@@ -175,8 +287,8 @@ async function logiNenviarEmail(email, username, password, plano, created_at, ex
     html: corpoHtml,
     attachments: [
       {
-        filename: 'kingplay-logo.png',
-        path: __dirname + '/kingplay-logo.png',
+        filename: 'ironplay-logo.png',
+        path: __dirname + '/ironplay-logo.png',
         cid: 'logo@ironplay' // mesmo que no src do HTML
       }
     ]
