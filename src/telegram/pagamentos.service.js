@@ -1,67 +1,72 @@
-require('dotenv').config();
+require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
+const { obterPacote } = require('../utils/pacotes'); // Importa a função
 
 class PagamentosService {
   constructor() {
     this.prisma = new PrismaClient();
-    this.botToken = process.env.TELEGRAM_BOT_PAGAMENTOS;
-    this.chatId = process.env.TELEGRAM_CHAT_ID;
-    this.maxTentativas = 5;
+    this.botToken = process.env.TELEGRAM_BOT_PAGAMENTOS; // Token do bot do Telegram
+    this.chatId = process.env.TELEGRAM_CHAT_ID; // ID do chat no Telegram
   }
 
-  async esperar(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  async enviarMensagemTelegram(mensagem, tentativa = 1) {
+  // Método para formatar e enviar mensagens ao Telegram
+  async enviarMensagemTelegram(mensagem) {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
 
+    console.log('Tentando enviar mensagem ao Telegram...');
+    console.log('URL:', url);
+    console.log('Chat ID:', this.chatId);
+    console.log('Mensagem:', mensagem);
+
     try {
-      await axios.post(url, {
+      const response = await axios.post(url, {
         chat_id: this.chatId,
         text: mensagem,
-        parse_mode: 'Markdown',
+        parse_mode: 'Markdown', // Formatação básica do Telegram
       });
 
-      console.log(`✅ Mensagem enviada com sucesso (tentativa ${tentativa}).`);
-      return true;
+      console.log('✅ Mensagem enviada com sucesso:', response.data);
     } catch (error) {
-      console.error(`❌ Erro ao enviar mensagem (tentativa ${tentativa}):`, error.message);
+      console.error('❌ Erro ao enviar mensagem para o Telegram:', error.message);
 
-      if (tentativa < this.maxTentativas) {
-        const espera = 3000 * tentativa;
-        console.log(`⏳ Tentando novamente em ${espera / 1000}s...`);
-        await this.esperar(espera);
-        return this.enviarMensagemTelegram(mensagem, tentativa + 1);
-      } else {
-        console.error(`🚨 Falha após ${this.maxTentativas} tentativas.`);
-        return false;
+      if (error.response) {
+        console.error('📌 Resposta da API:', error.response.data);
       }
     }
   }
 
+  // Método para verificar novas vendas
   async verificarNovasVendas() {
     try {
-     const vendasPendentes = await this.prisma.venda.findMany({
-  where: { processada: false },
-  orderBy: { criadoEm: 'desc' },
-  include: { usuarioQpanel: true },
-});
+      // Busca a venda mais recente que ainda não foi processada
+      const novaVenda = await this.prisma.venda.findFirst({
+        where: { processada: false }, // Apenas vendas não processadas
+        orderBy: { criadoEm: 'desc' }, // Ordenar pela data de criação (mais recente)
+        include: { usuarioQpanel: true }, // Inclui o usuário relacionado
+      });
 
+      if (novaVenda) {
+        console.log('📌 Nova venda recebida:', novaVenda);
 
-      if (vendasPendentes.length === 0) {
-        console.log('🔍 Nenhuma venda pendente para envio.');
-        return;
-      }
+        // Pegando o package_id do usuário
+        const packageId = novaVenda.usuarioQpanel?.package_id;
 
-      console.log(`📦 Encontradas ${vendasPendentes.length} vendas pendentes.`);
+        // Se existir um package_id, busca o pacote correspondente
+        let nomePlano = "Plano Desconhecido";
+        let valorPlano = "0.00";
 
-      for (const venda of vendasPendentes) {
-        console.log(`🧾 Processando venda ID: ${venda.id}`);
-
-        const username = venda.usuarioQpanel?.nome || 'N/A';
-        const password = venda.usuarioQpanel?.senha || 'N/A';
+        if (packageId) {
+          try {
+            const pacoteEncontrado = obterPacote(null, null, packageId);
+            if (pacoteEncontrado) {
+              nomePlano = pacoteEncontrado.nome;
+              valorPlano = pacoteEncontrado.valor;
+            }
+          } catch (error) {
+            console.error('❌ Erro ao buscar pacote:', error.message);
+          }
+        }
 
         const mensagem = `
 *NOVA VENDA RECEBIDA!* 🚀
@@ -105,42 +110,39 @@ class PagamentosService {
 *DOWNLOAD:* https://bit.ly/XXXXX
 `;
 
-        const enviada = await this.enviarMensagemTelegram(mensagem);
+        // Envia a mensagem ao Telegram
+        await this.enviarMensagemTelegram(mensagem);
 
-        if (enviada) {
-          await this.prisma.venda.update({
-            where: { id: venda.id },
-            data: { processada: true, erroTelegram: null },
-          });
-          console.log(`✅ Venda ${venda.id} marcada como processada.`);
-        } else {
-          await this.prisma.venda.update({
-            where: { id: venda.id },
-            data: { erroTelegram: 'Falha ao enviar mensagem para o Telegram' },
-          });
-          console.error(`⚠️ Venda ${venda.id} falhou novamente. Mantida como pendente.`);
-        }
+        // Marca a venda como processada no banco de dados
+        await this.prisma.venda.update({
+          where: { id: novaVenda.id },
+          data: { processada: true },
+        });
+
+        console.log(`Venda ${novaVenda.id} processada com sucesso.`);
+      } else {
+        console.log('Nenhuma nova venda encontrada.');
       }
     } catch (error) {
-      console.error('❌ Erro geral ao verificar novas vendas:', error.message);
+      console.error('Erro ao verificar novas vendas:', error.message);
     }
   }
 
+  // Método para iniciar o monitoramento de vendas
   iniciarMonitoramento() {
-    console.log('🚀 Iniciando monitoramento de novas vendas...');
-    this.verificarNovasVendas(); // roda uma vez imediatamente
-    setInterval(() => this.verificarNovasVendas(), 10000); // a cada 10s
+    console.log('Iniciando monitoramento de novas vendas...');
+    setInterval(() => this.verificarNovasVendas(), 5000); // Verifica a cada 5 segundos
   }
 }
 
+// Encerrar conexão do Prisma ao finalizar o processo
 process.on('SIGINT', async () => {
-  console.log('🧹 Encerrando conexão com o Prisma...');
+  console.log('Encerrando conexão com o Prisma...');
   await new PrismaClient().$disconnect();
   process.exit(0);
 });
 
-// Se for executado diretamente
-if (require.main === module) {
-  const pagamentos = new PagamentosService();
-  pagamentos.iniciarMonitoramento();
-}
+// Exporta o serviço de pagamentos
+module.exports = {
+  PagamentosService,
+};
