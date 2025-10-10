@@ -1,0 +1,4 @@
+> git pull --tags origin master
+fatal: bad object refs/heads/master:Zone.Identifier
+error: https://github.com/PresleyGSilva/ironplay-backend.git did not send all necessary objects
+
