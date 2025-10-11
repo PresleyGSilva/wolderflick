@@ -252,7 +252,7 @@ async function tratarWebhookCakto(req, res, plataforma = 'Cakto') {
 
   // ✅ Verificação da chave secreta
   const secretRecebido = req.body.secret;
-  if (secretRecebido !== '0f0c46a0-13ce-47f6-8243-d07fa8fc717c') {
+  if (secretRecebido !== 'd074f99e-2839-4953-aee5-d3a1abf699f0') {
     console.warn('🔒 Chave secreta inválida:', secretRecebido);
     return res.status(403).json({ message: 'Chave secreta inválida.' });
   }
