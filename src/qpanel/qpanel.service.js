@@ -86,21 +86,20 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     }
 
     console.log('🛠 Criando usuário no QPanel...');
-    const response = await axios.post(`${API_URL}/customer/create`, {
-      userId: USER_ID,
-      packageId: serverPackageId,
-      username: username,
-      password: password,
-      name: nome,
-      email: whatsapp,
-      whatsapp: email,
-    }, {
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-      }
-    });
-
+  const response = await axios.post(`${API_URL}/customer/create`, {
+  userId: USER_ID,
+  packageId: serverPackageId,
+  username: username,
+  password: password,
+  name: nome,
+  email: email,       // aqui vai o email do cliente
+  whatsapp: whatsapp, // aqui vai o número do WhatsApp
+}, {
+  headers: {
+    Authorization: `Bearer ${API_TOKEN}`,
+    'Content-Type': 'application/json',
+  }
+});
     if (response.data && response.data.username) {
       console.log('✅ Usuário criado no QPanel:', response.data);
 
