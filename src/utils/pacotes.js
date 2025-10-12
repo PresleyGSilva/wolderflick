@@ -4,7 +4,7 @@ function obterPacote(plano, valorTransacao, packageId) {
     { packageId: "zpKDN6DXlE", serverPackageId: "8", nome: "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS", valor: 18.9 },
     { packageId: "kmVLl71QwB", serverPackageId: "8", nome: "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS", valor: 38.9 },
     { packageId: "XYgD9JWr6V", serverPackageId: "8", nome: "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS", valor: 64.9 },
-    { packageId: "PkaL4qdDgr", serverPackageId: "8", nome: "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS", valor: 124.9 },
+    { packageId: "PkaL4qdDgr", serverPackageId: "8", nome: "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS", valor: 124.99 },
 
     // 🔥 Novos pacotes (Oferta R$)
     { packageId: "qK4WrQDeNj", serverPackageId: "8", nome: "1 MÊS DE ACESSO 29,90 OFERTA -18", valor: 29.9 },
@@ -18,11 +18,11 @@ function obterPacote(plano, valorTransacao, packageId) {
 
   const mapeamentoAbreviacoes = {
     // Planos antigos
-    "11 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+    "1 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
     "3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
     "6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
     "12 MÊSES + 3 TELAS": "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS",
-    "OFERTA 11 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+    "OFERTA 1 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
     "OFERTA 3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
     "OFERTA 6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
     "OFERTA 12 MÊSES + 3 TELAS": "1 ANO DE ACESSO 195,90 OFERTA -18",
