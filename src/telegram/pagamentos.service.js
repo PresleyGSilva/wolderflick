@@ -99,17 +99,9 @@ APENAS LG, SAMSUNG, ROKU !!!
 🟢 *Link (M3U):*http://worldflick.xyz/get.php?username= ${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}
 &type=m3u_plus&output=mpegts
  
-🟢 *Link Curto (M3U):* http://e.1q2s.shop/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/m3u
+
  
-🟡 *Link (HLS):* http://1q2s.shop/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}
-&type=m3u_plus&output=hls
- 
-🟡 *Link Curto (HLS):* http://e.1q2s.shop/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/hls
- 
-🔴 *Link (SSIPTV):* http://ss.cd1mu9.eu/p/${novaVenda.usuarioQpanel?.nome/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/ssiptv
+🔴 *Link (SSIPTV):* https://ss.cd1mu9.eu//p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
 /ssiptv
  
 🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
