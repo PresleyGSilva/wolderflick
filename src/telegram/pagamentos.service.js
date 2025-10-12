@@ -43,84 +43,91 @@ class PagamentosService {
     }
   }
 
-  // Verifica novas vendas
-  async verificarNovasVendas() {
-    try {
-      const novaVenda = await this.prisma.venda.findFirst({
-        where: { processada: false },
-        orderBy: { criadoEm: 'desc' },
-        include: { usuarioQpanel: true },
-      });
+  // Método para verificar novas vendas
+async verificarNovasVendas() {
+  try {
+    const novaVenda = await this.prisma.venda.findFirst({
+      where: { processada: false },
+      orderBy: { criadoEm: 'desc' },
+      include: { usuarioQpanel: true },
+    });
 
-      if (!novaVenda) {
-        console.log('Nenhuma nova venda encontrada.');
-        return;
-      }
-
-      console.log('📌 Nova venda recebida:', novaVenda);
-
-      const usuarioNome = novaVenda.usuarioQpanel?.nome || 'N/A';
-      const usuarioSenha = novaVenda.usuarioQpanel?.senha || 'N/A';
-
-      let nomePlano = "Plano Desconhecido";
-      let valorPlano = "0.00";
-
-      const packageId = novaVenda.usuarioQpanel?.package_id;
-      if (packageId) {
-        try {
-          const pacoteEncontrado = obterPacote(null, null, packageId);
-          if (pacoteEncontrado) {
-            nomePlano = pacoteEncontrado.nome;
-            valorPlano = pacoteEncontrado.valor;
-          }
-        } catch (err) {
-          console.error('❌ Erro ao buscar pacote:', err.message);
-        }
-      }
-
-      // Monta a mensagem escapando todos os textos
-      const mensagem =
-        `*NOVA VENDA RECEBIDA!* 🚀\n` +
-        `*Plataforma:* ${this.escapeMarkdownV2(novaVenda.plataforma || 'N/A')}\n` +
-        `*Nome do Cliente:* ${this.escapeMarkdownV2(novaVenda.nome || 'N/A')}\n` +
-        `*Email do Cliente:* ${this.escapeMarkdownV2(novaVenda.email || 'N/A')}\n` +
-        `*Telefone:* ${this.escapeMarkdownV2(novaVenda.celular || 'N/A')}\n` +
-        `*Valor do Plano:* R$${valorPlano}\n` +
-        `*Plano Contratado:* ${this.escapeMarkdownV2(nomePlano)}\n` +
-        `*Usuário:* ${this.escapeMarkdownV2(usuarioNome)}\n` +
-        `*Senha:* ${this.escapeMarkdownV2(usuarioSenha)}\n\n` +
-        `*Links de Acesso:*\n` +
-        `STB/SMARTUP/SSIPTV: 178.156.149.200\n` +
-        `WEB PLAYER: [Acessar](http://wfmixx.wplay.lat/)\n` +
-        `Aplicativo Android WF MIXX: [Download](https://aftv.news/5999178)\n` +
-        `Max Player iPhone: Solicitar desbloqueio ao suporte\n` +
-        `IBO Control: Play Store TV Android e Box\n` +
-        `Lazer Play: [Adicionar Playlist](https://lazerplay.io/#/upload-playlist)\n\n` +
-        `*M3U Links:*\n` +
-        `Todos Apps: [Link](http://worldflick.xyz/get.php?username=${this.escapeMarkdownV2(usuarioNome)}&password=${this.escapeMarkdownV2(usuarioSenha)}&type=m3u_plus&output=mpegts)\n` +
-        `CloudDy: [Link](http://worldflick.xyz/get.php?username=${this.escapeMarkdownV2(usuarioNome)}&password=${this.escapeMarkdownV2(usuarioSenha)}&type=m3u_plus&output=mpegts)\n` +
-        `SSIPTV: [Link](http://ss.cd1mu9.eu/p/${this.escapeMarkdownV2(usuarioNome)}/${this.escapeMarkdownV2(usuarioSenha)}/ssiptv)\n` +
-        `HLS Set IPTV: [Link](http://75924gx.click/get.php?username=${this.escapeMarkdownV2(usuarioNome)}&password=${this.escapeMarkdownV2(usuarioSenha)}&type=m3u_plus&output=hls)\n\n` +
-        `*Suporte:*\n` +
-        `WhatsApp: [Clique aqui](https://bit.ly/ajudaffiliado)\n` +
-        `E-mail: atende@worldflick.site\n` +
-        `Site oficial: www.worldflick.site`;
-
-      // Envia mensagem
-      await this.enviarMensagemTelegram(mensagem);
-
-      // Marca venda como processada
-      await this.prisma.venda.update({
-        where: { id: novaVenda.id },
-        data: { processada: true },
-      });
-
-      console.log(`Venda ${novaVenda.id} processada com sucesso.`);
-
-    } catch (error) {
-      console.error('Erro ao verificar novas vendas:', error.message);
+    if (!novaVenda) {
+      console.log('Nenhuma nova venda encontrada.');
+      return;
     }
+
+    console.log('📌 Nova venda recebida:', novaVenda);
+
+    const packageId = novaVenda.usuarioQpanel?.package_id;
+    let nomePlano = "Plano Desconhecido";
+    let valorPlano = "0.00";
+
+    if (packageId) {
+      try {
+        const pacoteEncontrado = obterPacote(null, null, packageId);
+        if (pacoteEncontrado) {
+          nomePlano = pacoteEncontrado.nome;
+          valorPlano = pacoteEncontrado.valor;
+        }
+      } catch (error) {
+        console.error('❌ Erro ao buscar pacote:', error.message);
+      }
+    }
+
+    // Escape básico para Markdown simples: coloca campos sensíveis entre ``
+    const usuarioNome = novaVenda.usuarioQpanel?.nome || 'N/A';
+    const usuarioSenha = novaVenda.usuarioQpanel?.senha || 'N/A';
+
+    const mensagem = `
+*NOVA VENDA RECEBIDA!* 🚀
+Plataforma: ${novaVenda.plataforma || 'N/A'}
+Nome do Cliente: ${novaVenda.nome || 'N/A'}
+Email do Cliente: ${novaVenda.email || 'N/A'}
+Telefone: ${novaVenda.celular || 'N/A'}
+Valor do Plano: R$${valorPlano}
+Plano Contratado: ${nomePlano}
+Usuário: \`${usuarioNome}\`
+Senha: \`${usuarioSenha}\`
+
+LAZER PLAY E ADICIONA OU NO SITE:
+https://lazerplay.io/#/upload-playlist
+CODIGO: worldflick
+USUARIO: \`${usuarioNome}\`
+SENHA: \`${usuarioSenha}\`
+
+✅ APLICATIVO PARCEIRO MAX PLAYER: >>> - IPHONE - <<<
+APÓS INSTALAR O MAX PLAYER SOLICITE DESBLOQUEIO AO SUPORTE
+
+✅ APP NA PLAYSTORE TV BOX E CELULAR: IBO CONTROL OU XTREAM ULTRA
+✅ APP NA PLAYSTORE TV ANDROID: IBO CONTROL
+✅APLICATIVO PARCEIRO LAZER PLAY: APENAS LG, SAMSUNG, ROKU
+
+🟢 Link (M3U): http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts
+🔴 Link (SSIPTV): https://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv
+
+🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
+✅ WEB PLAYER: http://wfmixx.wplay.lat/
+✅ APLICATIVO PRÓPRIO ANDROID WF MIXX: https://aftv.news/5999178
+*Site oficial: www.worldflick.site
+`;
+
+    // Envia a mensagem ao Telegram
+    await this.enviarMensagemTelegram(mensagem);
+
+    // Marca a venda como processada
+    await this.prisma.venda.update({
+      where: { id: novaVenda.id },
+      data: { processada: true },
+    });
+
+    console.log(`Venda ${novaVenda.id} processada com sucesso.`);
+
+  } catch (error) {
+    console.error('Erro ao verificar novas vendas:', error.message);
   }
+}
+
 
   iniciarMonitoramento() {
     console.log('Iniciando monitoramento de novas vendas...');
