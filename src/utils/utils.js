@@ -1,15 +1,22 @@
 function calcularExpiracao(nomePlano) {
   const hoje = new Date();
 
+  // Normaliza acentos e remove emojis/números especiais
   const texto = nomePlano
     .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^\w\s]/g, " ") // remove símbolos/emoji
+    .replace(/\s+/g, " ") // normaliza espaços
+    .trim();
 
+  // Remove textos desnecessários
   const textoLimpo = texto
     .replace(/s\/ adulto/g, "")
     .replace(/de acesso/g, "")
     .replace(/oferta r\$ \d+,\d+/g, "")
-    .replace(/[\+!]/g, "")
+    .replace(/promo(cional)?/g, "")
+    .replace(/telas?/g, "")
     .trim();
 
   // Casos fixos tipo "mensal", "anual"
@@ -31,8 +38,8 @@ function calcularExpiracao(nomePlano) {
     }
   }
 
-  // Regex para extrair duração explícita
-  const regexDuracao = /(\d+)\s*(mes(?:es)?|ano(?:s)?)/;
+  // Regex mais tolerante: captura "12 meses", "12meses", "12 mês", etc.
+  const regexDuracao = /(\d+)\s*(mes|meses|ano|anos)?/;
   const match = textoLimpo.match(regexDuracao);
 
   if (!match) {
@@ -40,7 +47,7 @@ function calcularExpiracao(nomePlano) {
   }
 
   const quantidade = parseInt(match[1], 10);
-  const unidade = match[2];
+  const unidade = match[2] || "meses"; // padrão = meses
 
   if (unidade.startsWith("mes")) {
     hoje.setMonth(hoje.getMonth() + quantidade);
