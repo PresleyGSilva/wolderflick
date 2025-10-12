@@ -18,17 +18,17 @@ function obterPacote(plano, valorTransacao, packageId) {
 
   const mapeamentoAbreviacoes = {
   // Planos antigos
-  "1 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
-  "3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
-  "6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
+  "1 MÊS + 3 TELAS PROMO": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+  "3 MÊSES + 3 TELAS PROMO": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
+  "6 MÉSES + 3 TELAS PROMO": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
   "12 MÊSES + 3 TELAS": "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS", // 👈 adicione esta linha
   "12 MÊSES + 3 TELAS PROMO": "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS",
   
   // Planos de oferta
-  "OFERTA 1 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
-  "OFERTA 3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
-  "OFERTA 6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
-  "OFERTA 12 MÊSES + 3 TELAS": "1 ANO DE ACESSO 195,90 OFERTA -18",
+  "1 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+  "3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
+  "6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
+  "12 MÊSES + 3 TELAS": "1 ANO DE ACESSO 195,90 OFERTA -18",
 
   // Planos por nome genérico
   "plano mensal": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
