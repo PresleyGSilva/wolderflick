@@ -1,7 +1,7 @@
 require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
-const { obterPacote } = require('../utils/pacotes'); // Importa a função
+const { obterPacote } = require('../utils/pacotes'); // Função que busca os pacotes
 
 class PagamentosService {
   constructor() {
@@ -10,73 +10,84 @@ class PagamentosService {
     this.chatId = process.env.TELEGRAM_CHAT_ID; // ID do chat no Telegram
   }
 
-  // Método para formatar e enviar mensagens ao Telegram
+  // Função para escapar caracteres especiais no HTML do Telegram
+  escapeHtmlTelegram(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // Método para enviar mensagens ao Telegram
   async enviarMensagemTelegram(mensagem) {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
-
-    console.log('Tentando enviar mensagem ao Telegram...');
-    console.log('URL:', url);
-    console.log('Chat ID:', this.chatId);
-    console.log('Mensagem:', mensagem);
 
     try {
       const response = await axios.post(url, {
         chat_id: this.chatId,
         text: mensagem,
-        parse_mode: 'Markdown', // Formatação básica do Telegram
+        parse_mode: 'HTML',
+        disable_web_page_preview: false
       });
 
       console.log('✅ Mensagem enviada com sucesso:', response.data);
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem para o Telegram:', error.message);
-
-      if (error.response) {
-        console.error('📌 Resposta da API:', error.response.data);
-      }
+      if (error.response) console.error('📌 Resposta da API:', error.response.data);
     }
   }
 
   // Método para verificar novas vendas
- async verificarNovasVendas() {
-  try {
-    const novaVenda = await this.prisma.venda.findFirst({
-      where: { processada: false },
-      orderBy: { criadoEm: 'desc' },
-      include: { usuarioQpanel: true },
-    });
+  async verificarNovasVendas() {
+    try {
+      const novaVenda = await this.prisma.venda.findFirst({
+        where: { processada: false },
+        orderBy: { criadoEm: 'desc' },
+        include: { usuarioQpanel: true },
+      });
 
-    if (!novaVenda) {
-      console.log('Nenhuma nova venda encontrada.');
-      return;
-    }
-
-    console.log('📌 Nova venda recebida:', novaVenda);
-
-    const usuarioNome = novaVenda.usuarioQpanel?.nome || 'Não criado';
-    const usuarioSenha = novaVenda.usuarioQpanel?.senha || 'Não criado';
-
-    const packageId = novaVenda.usuarioQpanel?.package_id;
-    let nomePlano = "Plano Desconhecido";
-    let valorPlano = "0.00";
-
-    if (packageId) {
-      try {
-        const pacoteEncontrado = obterPacote(null, null, packageId);
-        if (pacoteEncontrado) {
-          nomePlano = pacoteEncontrado.nome;
-          valorPlano = pacoteEncontrado.valor;
-        }
-      } catch (error) {
-        console.error('❌ Erro ao buscar pacote:', error.message);
+      if (!novaVenda) {
+        console.log('Nenhuma nova venda encontrada.');
+        return;
       }
-    }
 
-    const mensagem = `
+      console.log('📌 Nova venda recebida:', novaVenda);
+
+      // Escapa todos os campos para HTML
+      const usuarioNome = this.escapeHtmlTelegram(novaVenda.usuarioQpanel?.nome || 'Não criado');
+      const usuarioSenha = this.escapeHtmlTelegram(novaVenda.usuarioQpanel?.senha || 'Não criado');
+      const nomeCliente = this.escapeHtmlTelegram(novaVenda.nome || 'N/A');
+      const emailCliente = this.escapeHtmlTelegram(novaVenda.email || 'N/A');
+      const telefoneCliente = this.escapeHtmlTelegram(novaVenda.celular || 'N/A');
+      const plataforma = this.escapeHtmlTelegram(novaVenda.plataforma || 'N/A');
+
+      // Obtem pacote
+      const packageId = novaVenda.usuarioQpanel?.package_id;
+      let nomePlano = "Plano Desconhecido";
+      let valorPlano = "0.00";
+
+      if (packageId) {
+        try {
+          const pacoteEncontrado = obterPacote(null, null, packageId);
+          if (pacoteEncontrado) {
+            nomePlano = this.escapeHtmlTelegram(pacoteEncontrado.nome);
+            valorPlano = this.escapeHtmlTelegram(pacoteEncontrado.valor.toString());
+          }
+        } catch (error) {
+          console.error('❌ Erro ao buscar pacote:', error.message);
+        }
+      }
+
+      // Monta a mensagem em HTML
+      const mensagem = `
 <b>NOVA VENDA RECEBIDA! 🚀</b><br>
-<b>Plataforma:</b> ${novaVenda.plataforma || 'N/A'}<br>
-<b>Nome do Cliente:</b> ${novaVenda.nome || 'N/A'}<br>
-<b>Email do Cliente:</b> ${novaVenda.email || 'N/A'}<br>
-<b>Telefone:</b> ${novaVenda.celular || 'N/A'}<br>
+<b>Plataforma:</b> ${plataforma}<br>
+<b>Nome do Cliente:</b> ${nomeCliente}<br>
+<b>Email do Cliente:</b> ${emailCliente}<br>
+<b>Telefone:</b> ${telefoneCliente}<br>
 <b>Valor do Plano:</b> R$${valorPlano}<br>
 <b>Plano Contratado:</b> ${nomePlano}<br>
 <b>Usuário:</b> ${usuarioNome}<br>
@@ -102,25 +113,22 @@ E-mail: atende@worldflick.site<br>
 Site oficial: www.worldflick.site
 `;
 
-    await this.enviarMensagemTelegram({
-      chat_id: this.chatId,
-      text: mensagem,
-      parse_mode: 'HTML',
-      disable_web_page_preview: false
-    });
+      // Envia a mensagem ao Telegram
+      await this.enviarMensagemTelegram(mensagem);
 
-    // Marca a venda como processada
-    await this.prisma.venda.update({
-      where: { id: novaVenda.id },
-      data: { processada: true },
-    });
+      // Marca a venda como processada
+      await this.prisma.venda.update({
+        where: { id: novaVenda.id },
+        data: { processada: true },
+      });
 
-    console.log(`Venda ${novaVenda.id} processada com sucesso.`);
+      console.log(`Venda ${novaVenda.id} processada com sucesso.`);
 
-  } catch (error) {
-    console.error('Erro ao verificar novas vendas:', error.message);
+    } catch (error) {
+      console.error('Erro ao verificar novas vendas:', error.message);
+    }
   }
-}
+
   // Método para iniciar o monitoramento de vendas
   iniciarMonitoramento() {
     console.log('Iniciando monitoramento de novas vendas...');
