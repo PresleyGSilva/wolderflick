@@ -10,7 +10,7 @@ class PagamentosService {
     this.chatId = process.env.TELEGRAM_CHAT_ID;
   }
 
-  // Método para enviar mensagem ao Telegram
+  // Método para enviar mensagem ao Telegram (texto puro)
   async enviarMensagemTelegram(mensagem) {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
 
@@ -22,8 +22,8 @@ class PagamentosService {
     try {
       const response = await axios.post(url, {
         chat_id: this.chatId,
-        text: mensagem,
-        parse_mode: 'Markdown', // Texto puro
+        text: mensagem, // texto puro, sem parse_mode
+        disable_web_page_preview: false,
       });
 
       console.log('✅ Mensagem enviada com sucesso:', response.data);
@@ -97,6 +97,7 @@ class PagamentosService {
         `E-mail: atende@worldflick.site\n` +
         `Site oficial: www.worldflick.site`;
 
+      // Envia a mensagem
       await this.enviarMensagemTelegram(mensagem);
 
       // Marca a venda como processada
