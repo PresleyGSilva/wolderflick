@@ -79,35 +79,47 @@ class PagamentosService {
 *USUÁRIO:* ${novaVenda.usuarioQpanel?.nome || 'N/A'}
 *SENHA:* ${novaVenda.usuarioQpanel?.senha || 'N/A'}
 
+🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
 
- 
-🟠 *DNS XCIPTV:* http://1q2s.shop
-🟠 *DNS SMARTERS:* http://1q2s.shop
- 
-🟢 *Link (M3U):* http://1q2s.shop/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}
-&type=m3u_plus&output=mpegts
- 
-🟢 *Link Curto (M3U):* http://e.1q2s.shop/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/m3u
- 
-🟡 *Link (HLS):* http://1q2s.shop/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}
-&type=m3u_plus&output=hls
- 
-🟡 *Link Curto (HLS):* http://e.1q2s.shop/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/hls
- 
-🔴 *Link (SSIPTV):* http://e.1q2s.shop/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}
-/ssiptv
- 
-📺 *DNS STB / SmartUp:* XXXXX
- 
-📺 *WebPlayer:* http://XXXXXX/
- 
-✅ *PARA ANDROID:*
-- PLAYSTORE
-- EM BREVE
-✅ *App EM APK (LINK DIRETO):*
-*DOWNLOAD:* https://bit.ly/XXXXX
+✅ WEB PLAYER: http://wfmixx.wplay.lat/
+USAR EM COMPUTADOR, NOTEBOOK, XBOX, PHILCO NET RANGE, SONY BRAVIA, PS4 !!!
+
+✅ APLICATIVO PRÓPRIO ANDROID WF MIXX:
+LINK DOWNLOADER: https://aftv.news/5999178
+CÓDIGO DOWNLOADER: 5999178
+CÓDIGO NTDOWN: 99879
+
+✅ APLICATIVO PARCEIRO MAX PLAYER: >>> - IPHONE -
+>>>> APÓS INSTALAR O MAX PLAYER SOLICITE DESBLOQUEIO AO SUPORTE !!! <<<<
+
+✅ APP NA PLAYSTORE TV BOX E CELULAR: IBO CONTROL OU XTREAM ULTRA
+
+✅ APP NA PLAYSTORE TV ANDROID: IBO CONTROL 
+
+✅APLICATIVO PARCEIRO LAZER PLAY:
+APENAS LG, SAMSUNG, ROKU !!!
+
+CLIENTE ENTRA EM PLAYLIST NO APP LAZER PLAY E ADICIONA OU NO SITE:
+https://lazerplay.io/#/upload-playlist
+CODIGO: worldflick
+USUARIO: ${novaVenda.usuarioQpanel?.nome || 'N/A'}
+SENHA: ${novaVenda.usuarioQpanel?.senha || 'N/A'}
+
+🟠 M3U TODOS APLICATIVOS:
+http://worldflick.xyz/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}&type=m3u_plus&output=mpegts
+
+🟡 M3U APLICATIVO CLOUDDY: 
+http://worldflick.xyz/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}&type=m3u_plus&output=mpegts
+
+🔴 Link (SSIPTV): http://ss.cd1mu9.eu/p/${novaVenda.usuarioQpanel?.nome || 'N/A'}/${novaVenda.usuarioQpanel?.senha || 'N/A'}/ssiptv
+
+🟡 Link (HLS) SET IPTV: http://75924gx.click/get.php?username=${novaVenda.usuarioQpanel?.nome || 'N/A'}&password=${novaVenda.usuarioQpanel?.senha || 'N/A'}&type=m3u_plus&output=hls
+
+SUPORTE:
+WHATSAPP: https://bit.ly/ajudaffiliado
+E-MAIL: atende@worldflick.site
+
+SITE OFICIAL: www.worldfick.site
 `;
 
         // Envia a mensagem ao Telegram

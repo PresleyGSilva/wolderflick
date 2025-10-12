@@ -6,16 +6,19 @@ const cron = require('node-cron');
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-// Função para criar transporter usando Hostinger
+// Função para criar transporter usando o servidor de e-mail do cPanel
 function createTransporter() {
   return nodemailer.createTransport({
-    host: 'smtp.hostinger.com',
-    port: 465, // SSL
-    secure: true, // true para 465
+    host: 'ca806-cp.fmhospeda.com', // servidor SMTP do cPanel
+    port: 465, // usa SSL (porta padrão segura)
+    secure: true, // true para SSL
     auth: {
-      user: 'suporte@ironplayoficial.com.br',
-      pass: '130829Be@16', // senha do e-mail
+      user: 'atende@worldflick.site', // seu e-mail completo
+      pass: 'Cyn10203040@', // sua senha do e-mail
     },
+    tls: {
+      rejectUnauthorized: false // evita erros de certificado (recomendado para cPanel)
+    }
   });
 }
 
@@ -114,8 +117,8 @@ async function enviarEmailGenerico(mailOptions) {
   }
 }
 
-async function logiNenviarEmail(email, username, password, plano, created_at, expires_at) {
-  let conexoes = plano.toLowerCase().includes('12') ? 1 : 1;
+async function logiNenviarEmail(email, username, password, plano, created_at, expires_at, conexoes = 3) {
+  // preco mantido como antes (ajuste se necessário)
   const preco = "R$ 0,00";
 
   const corpoHtml = `
@@ -124,178 +127,224 @@ async function logiNenviarEmail(email, username, password, plano, created_at, ex
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Seu Acesso ao IronPlay</title>
+  <title>Seu Acesso ao Worldflick</title>
   <style>
-  body { 
-    font-family: Arial, sans-serif; 
-    background: #f7f7f7; /* fundo claro neutro */
-    padding: 20px; 
-    margin: 0;
-  }
-  .container { 
-    background: #1e4427; /* fundo com cor da logo */
-    max-width: 700px; 
-    margin: auto; 
-    padding: 20px; 
-    border-radius: 12px;
-    color: white; /* texto branco padrão */
-    box-sizing: border-box;
-    border: none; 
-  }
-  .header, .footer { 
-    text-align: center; 
-  }
-  .footer { 
-    font-size: 12px; 
-    color: #ccc; 
-    margin-top: 30px; 
-  }
-  h1 { 
-    text-align: center; 
-    color: #a5d6a7; /* tom verde claro para título */
-  }
-  /* Padrão dos parágrafos */
-  .info p, .section p {
-    font-size: 16px; 
-    margin: 6px 0; 
-    color: white; /* texto branco */
-  }
-  /* Negrito e preto para strong dentro de p */
-  .info p strong, .section p strong {
-    font-weight: bold;
-    color: black;
-  }
-  /* h3 em negrito e preto */
-  h3 {
-    font-weight: bold;
-    color: black;
-  }
-  .section { 
-    margin-top: 25px; 
-  }
-  a.btn { 
-    display: inline-block; 
-    padding: 10px 15px; 
-    background: #2D9C28; /* verde do botão */
-    color: #fff; 
-    border-radius: 5px; 
-    text-decoration: none; 
-    margin: 10px 0; 
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  a.btn:hover { 
-    background: #1b6a17; 
-  }
-  a.whatsapp-btn { 
-    background: #25D366 !important; 
-  }
-  code { 
-    background: #144d11; /* fundo escuro para código */
-    padding: 2px 6px; 
-    border-radius: 4px; 
-    color: #c8f7c5;
-    font-weight: bold;
-  }
-</style>
-
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      color: #222;
+    }
+    .hero {
+      background: linear-gradient(90deg, #1e4427 0%, #2d7a34 100%);
+      color: #fff;
+      padding: 18px 24px;
+      text-align: center;
+    }
+    .hero img {
+      max-width: 180px;
+      height: auto;
+      display: block;
+      margin: 0 auto 12px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+    .content {
+      padding: 20px 24px;
+      line-height: 1.45;
+      font-size: 15px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e9f7ea;
+      color: #1b6a17;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .field {
+      margin: 8px 0;
+    }
+    .field strong {
+      display: inline-block;
+      width: 135px;
+      color: #111;
+    }
+    .code {
+      display: block;
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+      word-break: break-all;
+      font-family: monospace;
+      margin: 8px 0 12px 0;
+    }
+    .note {
+      font-size: 13px;
+      color: #555;
+      margin-top: 10px;
+    }
+    .links a {
+      display: inline-block;
+      margin: 6px 6px 6px 0;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: #f0f0f0;
+      color: #222;
+      font-weight: bold;
+    }
+    .footer {
+      background: #fafafa;
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+      border-top: 1px solid #eee;
+    }
+    a.whatsapp {
+      background: #25D366;
+      color: #fff !important;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    @media (max-width: 520px) {
+      .field strong { width: 110px; display: block; margin-bottom: 4px; }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 250px; height: auto;" />
+    <div class="hero">
+      <img src="cid:logo@worldflick" alt="Worldflick" />
+      <h1>USUÁRIO CRIADO COM SUCESSO !!!</h1>
     </div>
 
-    <h1>Agradecemos a preferência</h1>
+    <div class="content">
+      <p class="badge">🌐 DNS URL XCIPTV: <strong>http://worldflick.xyz</strong></p>
 
-    <div class="info">
-      <p><strong>✅ Usuário:</strong> ${username}</p>
-      <p><strong>✅ Senha:</strong> ${password}</p>
-      <p><strong>📦 Plano:</strong> ${plano}</p>
-      <p><strong>💵 Preço do Plano:</strong> ${preco}</p>
-      <p><strong>🗓️ Criado em:</strong> ${created_at}</p>
-      <p><strong>🗓️ Vencimento:</strong> ${expires_at}</p>
-      <p><strong>📶 Conexões:</strong> ${conexoes}</p>
-    </div>
+      <div class="field"><strong>✅ Usuário:</strong> ${username}</div>
+      <div class="field"><strong>✅ Senha:</strong> ${password}</div>
+      <div class="field"><strong>📶 Conexões:</strong> ${conexoes}</div>
+      <div class="field"><strong>🗓️ Vencimento:</strong> ${expires_at}</div>
 
-    <div class="section">
-      <h3>🔴 Suporte</h3>
-      <p><a href="https://wa.me/message/6RHNBJB7PCIPN1" class="btn whatsapp-btn">📱 Clique aqui para falar no WhatsApp</a></p>
-    </div>
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;" />
 
-    <div class="section">
-      <h3>🔸 Link direto Dispositivos Android</h3>
-      <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron1.apk">Baixar App 1</a></p>
-      <p><strong>Cód. Downloader:</strong> 4032041</p>
-      <p>📥 <a href="https://www.ironplayoficial.com.br/apk/iron2.apk">Baixar App 2</a></p>
-      <p><strong>Cód. Downloader:</strong> 9581295</p>
-    </div>
+      <div class="field"><strong>🟢 STB/SMARTUP/SSIPTV:</strong> 178.156.149.200</div>
 
-    <div class="section">
-      <h3>🟠 DNS XCIPTV</h3>
-      <p><code>http://u2xayz.shop</code></p>
-      <p><code>http://1q2s.shop</code></p>
-    </div>
+      <div style="margin-top:12px;">
+        <strong>✅ WEB PLAYER:</strong>
+        <div class="code">http://wfmixx.wplay.lat/</div>
+        <div class="note">USAR EM COMPUTADOR, NOTEBOOK, XBOX, PHILCO NET RANGE, SONY BRAVIA, PS4 !!!</div>
+      </div>
 
-    <div class="section">
-      <h3>🟠 DNS SMARTERS</h3>
-      <p><code>http://u2xayz.shop</code></p>
-      <p><code>http://1q2s.shop</code></p>
-    </div>
+      <div style="margin-top:14px;">
+        <h3 style="margin:6px 0 8px 0;">✅ APLICATIVO PRÓPRIO ANDROID WF MIXX:</h3>
+        <div class="field"><strong>LINK DOWNLOADER:</strong> <a href="https://aftv.news/5999178" target="_blank">https://aftv.news/5999178</a></div>
+        <div class="field"><strong>CÓDIGO DOWNLOADER:</strong> 5999178</div>
+        <div class="field"><strong>CÓDIGO NTDOWN:</strong> 99879</div>
+      </div>
 
-    <div class="section">
-      <h3>🟣 Assist Plus - Roku, LG, Samsung e Android</h3>
-      <p><strong>Cod:</strong> 34985687</p>
-      <p><strong>Usuário:</strong> ${username}</p>
-      <p><strong>Senha:</strong> ${password}</p>
-    </div>
+      <div style="margin-top:14px;">
+        <h3 style="margin:6px 0 8px 0;">✅ APLICATIVO PARCEIRO MAX PLAYER:</h3>
+        <div class="note">- IPHONE - <br/>APÓS INSTALAR O MAX PLAYER SOLICITE DESBLOQUEIO AO SUPORTE !!!</div>
+      </div>
 
-    <div class="section">
-      <h3>🟢 Link M3U</h3>
-      <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=mpegts</code></p>
-      <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/m3u</code></p>
-    </div>
+      <div style="margin-top:12px;">
+        <div class="field"><strong>✅ APP PLAYSTORE TV BOX E CELULAR:</strong> IBO CONTROL OU XTREAM ULTRA</div>
+        <div class="field"><strong>✅ APP PLAYSTORE TV ANDROID:</strong> IBO CONTROL</div>
+      </div>
 
-    <div class="section">
-      <h3>🟡 Link HLS</h3>
-      <p><code>http://1q2s.shop/get.php?username=${username}&password=${password}&type=m3u_plus&output=hls</code></p>
-      <p><strong>Link Curto:</strong> <code>http://e.1q2s.shop/p/${username}/${password}/hls</code></p>
-    </div>
+      <div style="margin-top:12px;">
+        <h3 style="margin:6px 0 8px 0;">✅ APLICATIVO PARCEIRO LAZER PLAY:</h3>
+        <div class="note">APENAS LG, SAMSUNG, ROKU !!!</div>
+        <div style="margin-top:8px;">
+          <div class="note">CLIENTE ENTRA EM PLAYLIST NO APP LAZER PLAY E ADICIONA OU NO SITE:</div>
+          <div class="code">https://lazerplay.io/#/upload-playlist</div>
+          <div class="field"><strong>CÓDIGO:</strong> worldflick</div>
+          <div class="field"><strong>USUÁRIO:</strong> ${username}</div>
+          <div class="field"><strong>SENHA:</strong> ${password}</div>
+        </div>
+      </div>
 
-    <div class="section">
-      <h3>🔴 Link SSIPTV</h3>
-      <p><code>http://e.1q2s.shop/p/${username}/${password}/ssiptv</code></p>
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;" />
+
+      <div>
+        <h3 style="margin:6px 0 8px 0;">M3U / LINKS</h3>
+
+        <div class="field"><strong>🟠 M3U TODOS APLICATIVOS:</strong></div>
+        <div class="code">http://worldflick.xyz/get.php?username=${username}&password=${password}&type=m3u_plus&output=mpegts</div>
+
+        <div class="field"><strong>🟡 M3U APLICATIVO CLOUDDY:</strong></div>
+        <div class="code">http://worldflick.xyz/get.php?username=${username}&password=${password}&type=m3u_plus&output=mpegts</div>
+
+        <div class="field"><strong>🔴 Link (SSIPTV):</strong></div>
+        <div class="code">http://ss.cd1mu9.eu/p/${username}/${password}/ssiptv</div>
+
+        <div class="field"><strong>🟡 Link (HLS) SET IPTV:</strong></div>
+        <div class="code">http://75924gx.click/get.php?username=${username}&password=${password}&type=m3u_plus&output=hls</div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;" />
+
+      <div style="margin-top:10px;">
+        <h3 style="margin:6px 0 8px 0;">SUPORTE</h3>
+        <div class="field"><strong>WHATSAPP:</strong> <a class="whatsapp" href="https://bit.ly/ajudaffiliado" target="_blank">Clique para WhatsApp</a></div>
+        <div class="field"><strong>E-MAIL:</strong> atende@worldflick.site</div>
+        <div class="field"><strong>SITE OFICIAL:</strong> www.worldfick.site</div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <p style="font-size:13px;color:#666;margin:0;">Se tiver alguma dúvida, responda este e-mail ou entre em contato via WhatsApp.</p>
+      </div>
     </div>
 
     <div class="footer">
-      <img src="cid:logo@ironplay" alt="IronPlay" style="max-width: 120px;" />
-      <p>IronPlay © ${new Date().getFullYear()}. Todos os direitos reservados.</p>
+      <img src="cid:logo@worldflick" alt="Worldflick" style="max-width:120px; display:block; margin:0 auto 8px;" />
+      <div>Worldflick © ${new Date().getFullYear()}. Todos os direitos reservados.</div>
     </div>
   </div>
 </body>
 </html>
 `;
 
-  
-
+  // cria transporter (assume createTransporter() existe no seu projeto)
   const transporter = await createTransporter();
 
   const mailOptions = {
     from: transporter.options.auth.user,
     to: email,
-    subject: '🎬 Seu Acesso ao IronPlay',
+    subject: '🎬 Seu Acesso ao Worldflick',
     html: corpoHtml,
     attachments: [
       {
-        filename: 'ironplay-logo.png',
-        path: __dirname + '/ironplay-logo.png',
-        cid: 'logo@ironplay' // mesmo que no src do HTML
+        filename: 'worldflick-logo.png',
+        path: __dirname + '/worldflick-logo.png',
+        cid: 'logo@worldflick' // corresponde ao src no HTML
       }
     ]
   };
 
   await transporter.sendMail(mailOptions);
 }
+
 
 // Envia e-mail para um usuário específico do QPanel
 async function enviarEmailUsuarioQpanel(userId) {

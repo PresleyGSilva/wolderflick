@@ -1,10 +1,10 @@
 function obterPacote(plano, valorTransacao, packageId) {
   const pacotes = [
     // Planos antigos
-    { packageId: "RYAWRk1jlx", serverPackageId: "8", nome: "1 MÊS DE ACESSO 16,90 -18", valor: 16.9 },
-    { packageId: "o231qzL4qz", serverPackageId: "8", nome: "3 MESES DE ACESSO 33,90 -18", valor: 33.9 },
-    { packageId: "VpKDaJWRAa", serverPackageId: "8", nome: "6 MESES DE ACESSO 59,90 -18", valor: 69.9 },
-    { packageId: "ANKWPKDPRq", serverPackageId: "8", nome: "1 ANO DE ACESSO 110,90 -18", valor: 110.9 },
+    { packageId: "zpKDN6DXlE", serverPackageId: "8", nome: "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS", valor: 18.9 },
+    { packageId: "kmVLl71QwB", serverPackageId: "8", nome: "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS", valor: 38.9 },
+    { packageId: "XYgD9JWr6V", serverPackageId: "8", nome: "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS", valor: 64.9 },
+    { packageId: "PkaL4qdDgr", serverPackageId: "8", nome: "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS", valor: 124.9 },
 
     // 🔥 Novos pacotes (Oferta R$)
     { packageId: "qK4WrQDeNj", serverPackageId: "8", nome: "1 MÊS DE ACESSO 29,90 OFERTA -18", valor: 29.9 },
@@ -18,20 +18,20 @@ function obterPacote(plano, valorTransacao, packageId) {
 
   const mapeamentoAbreviacoes = {
     // Planos antigos
-    "1 MÊS DE ACESSO COMPLETO": "1 MÊS DE ACESSO 16,90 -18",
-    "3 MESES DE ACESSO COMPLETO": "3 MESES DE ACESSO 33,90 -18",
-    "6 MESES DE ACESSO COMPLETO": "6 MESES DE ACESSO 59,90 -18",
-    "1 Ano DE ACESSO COMPLETO": "1 ANO DE ACESSO 110,90 -18",
-    "OFERTA 1 MÊS DE ACESSO COMPLETO": "1 MÊS DE ACESSO 16,90 -18",
-    "OFERTA 3 MESES DE ACESSO COMPLETO": "3 MESES DE ACESSO 33,90 -18",
-    "OFERTA 6 MESES DE ACESSO COMPLETO": "6 MESES DE ACESSO 59,90 -18",
-    "OFERTA 1 ANO DE ACESSO COMPLETO": "1 ANO DE ACESSO 195,90 OFERTA -18",
+    "11 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+    "3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
+    "6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
+    "12 MÊSES + 3 TELAS": "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS",
+    "OFERTA 11 MÊS + 3 TELAS": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+    "OFERTA 3 MÊSES + 3 TELAS": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
+    "OFERTA 6 MÉSES + 3 TELAS": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
+    "OFERTA 12 MÊSES + 3 TELAS": "1 ANO DE ACESSO 195,90 OFERTA -18",
     
 
-    "plano mensal": "1 MÊS DE ACESSO 16,90 -18",
-    "plano trimestral": "3 MESES DE ACESSO 33,90 -18",
-    "plano semestral": "6 MESES DE ACESSO 59,90 -18",
-    "plano anual": "1 ANO DE ACESSO 110,90 -18",
+    "plano mensal": "0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS",
+    "plano trimestral": "0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS",
+    "plano semestral": "0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS",
+    "plano anual": "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS",
     
 
    

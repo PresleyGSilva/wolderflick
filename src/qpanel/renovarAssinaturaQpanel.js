@@ -11,10 +11,10 @@ const USER_ID = 'rlKWO3Wzo7';
 
 function calcularDataExpiracao(packageId) {
   const dias = {
-    'z2BDvoWrkj': 30,
-    'bOxLAQLZ7a': 90,
-    'Yen129WPEa': 180,
-    '0RvWGl1e3P': 365
+    'zpKDN6DXlE': 30,
+    'kmVLl71QwB': 90,
+    'XYgD9JWr6V': 180,
+    'PkaL4qdDgr': 365
   };
   const diasExtras = dias[packageId] || 30;
   return new Date(Date.now() + diasExtras * 86400000);
