@@ -1,16 +1,16 @@
-require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
-const { obterPacote } = require('../utils/pacotes'); // Importa a função
+const { obterPacote } = require('../utils/pacotes');
 
 class PagamentosService {
   constructor() {
     this.prisma = new PrismaClient();
-    this.botToken = process.env.TELEGRAM_BOT_PAGAMENTOS; // Token do bot do Telegram
-    this.chatId = process.env.TELEGRAM_CHAT_ID; // ID do chat no Telegram
+    this.botToken = process.env.TELEGRAM_BOT_PAGAMENTOS;
+    this.chatId = process.env.TELEGRAM_CHAT_ID;
   }
 
-  // Método para formatar e enviar mensagens ao Telegram
+  // Método para enviar mensagem ao Telegram
   async enviarMensagemTelegram(mensagem) {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
 
@@ -23,21 +23,19 @@ class PagamentosService {
       const response = await axios.post(url, {
         chat_id: this.chatId,
         text: mensagem,
-        parse_mode: 'HTML', // Formatação HTML válida no Telegram
-        disable_web_page_preview: false
+        parse_mode: 'Markdown', // Texto puro
       });
 
       console.log('✅ Mensagem enviada com sucesso:', response.data);
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem para o Telegram:', error.message);
-
       if (error.response) {
         console.error('📌 Resposta da API:', error.response.data);
       }
     }
   }
 
-  // Método para verificar novas vendas
+  // Verifica novas vendas
   async verificarNovasVendas() {
     try {
       const novaVenda = await this.prisma.venda.findFirst({
@@ -56,10 +54,10 @@ class PagamentosService {
       const usuarioNome = novaVenda.usuarioQpanel?.nome || 'Não criado';
       const usuarioSenha = novaVenda.usuarioQpanel?.senha || 'Não criado';
 
-      const packageId = novaVenda.usuarioQpanel?.package_id;
       let nomePlano = "Plano Desconhecido";
       let valorPlano = "0.00";
 
+      const packageId = novaVenda.usuarioQpanel?.package_id;
       if (packageId) {
         try {
           const pacoteEncontrado = obterPacote(null, null, packageId);
@@ -67,37 +65,35 @@ class PagamentosService {
             nomePlano = pacoteEncontrado.nome;
             valorPlano = pacoteEncontrado.valor;
           }
-        } catch (error) {
-          console.error('❌ Erro ao buscar pacote:', error.message);
+        } catch (err) {
+          console.error('❌ Erro ao buscar pacote:', err.message);
         }
       }
 
-      const mensagem = `<b>NOVA VENDA RECEBIDA! 🚀</b>\n` +
-        `<b>Plataforma:</b> ${novaVenda.plataforma || 'N/A'}\n` +
-        `<b>Nome do Cliente:</b> ${novaVenda.nome || 'N/A'}\n` +
-        `<b>Email do Cliente:</b> ${novaVenda.email || 'N/A'}\n` +
-        `<b>Telefone:</b> ${novaVenda.celular || 'N/A'}\n` +
-        `<b>Valor do Plano:</b> R$${valorPlano}\n` +
-        `<b>Plano Contratado:</b> ${nomePlano}\n` +
-        `<b>Usuário:</b> ${usuarioNome}\n` +
-        `<b>Senha:</b> ${usuarioSenha}\n\n` +
-
-        `<b>Links de Acesso:</b>\n` +
-        `🌐 <b>STB/SMARTUP/SSIPTV:</b> 178.156.149.200\n` +
-        `✅ <b>WEB PLAYER:</b> <a href="http://wfmixx.wplay.lat/">Acessar</a>\n` +
-        `✅ <b>Aplicativo Android WF MIXX:</b> <a href="https://aftv.news/5999178">Download</a>\n` +
-        `📺 <b>Max Player iPhone:</b> Solicitar desbloqueio ao suporte\n` +
-        `✅ <b>IBO Control:</b> Play Store TV Android e Box\n` +
-        `✅ <b>Lazer Play:</b> <a href="https://lazerplay.io/#/upload-playlist">Adicionar Playlist</a>\n\n` +
-
-        `<b>M3U Links:</b>\n` +
-        `🟠 Todos Apps: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a>\n` +
-        `🟡 CloudDy: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a>\n` +
-        `🔴 SSIPTV: <a href="http://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv">Link</a>\n` +
-        `🟡 HLS Set IPTV: <a href="http://75924gx.click/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=hls">Link</a>\n\n` +
-
-        `<b>Suporte:</b>\n` +
-        `WhatsApp: <a href="https://bit.ly/ajudaffiliado">Clique aqui</a>\n` +
+      const mensagem =
+        `NOVA VENDA RECEBIDA! 🚀\n` +
+        `Plataforma: ${novaVenda.plataforma || 'N/A'}\n` +
+        `Nome do Cliente: ${novaVenda.nome || 'N/A'}\n` +
+        `Email do Cliente: ${novaVenda.email || 'N/A'}\n` +
+        `Telefone: ${novaVenda.celular || 'N/A'}\n` +
+        `Valor do Plano: R$${valorPlano}\n` +
+        `Plano Contratado: ${nomePlano}\n` +
+        `Usuário: ${usuarioNome}\n` +
+        `Senha: ${usuarioSenha}\n\n` +
+        `Links de Acesso:\n` +
+        `STB/SMARTUP/SSIPTV: 178.156.149.200\n` +
+        `WEB PLAYER: http://wfmixx.wplay.lat/\n` +
+        `Aplicativo Android WF MIXX: https://aftv.news/5999178\n` +
+        `Max Player iPhone: Solicitar desbloqueio ao suporte\n` +
+        `IBO Control: Play Store TV Android e Box\n` +
+        `Lazer Play: https://lazerplay.io/#/upload-playlist\n\n` +
+        `M3U Links:\n` +
+        `Todos Apps: http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts\n` +
+        `CloudDy: http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts\n` +
+        `SSIPTV: http://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv\n` +
+        `HLS Set IPTV: http://75924gx.click/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=hls\n\n` +
+        `Suporte:\n` +
+        `WhatsApp: https://bit.ly/ajudaffiliado\n` +
         `E-mail: atende@worldflick.site\n` +
         `Site oficial: www.worldflick.site`;
 
@@ -116,21 +112,20 @@ class PagamentosService {
     }
   }
 
-  // Método para iniciar o monitoramento de vendas
+  // Inicia monitoramento
   iniciarMonitoramento() {
     console.log('Iniciando monitoramento de novas vendas...');
-    setInterval(() => this.verificarNovasVendas(), 5000); // Verifica a cada 5 segundos
+    setInterval(() => this.verificarNovasVendas(), 5000);
   }
 }
 
-// Encerrar conexão do Prisma ao finalizar o processo
+// Encerra Prisma ao sair
 process.on('SIGINT', async () => {
   console.log('Encerrando conexão com o Prisma...');
   await new PrismaClient().$disconnect();
   process.exit(0);
 });
 
-// Exporta o serviço de pagamentos
 module.exports = {
   PagamentosService,
 };
