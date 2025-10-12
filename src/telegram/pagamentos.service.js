@@ -1,7 +1,7 @@
 require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
-const { obterPacote } = require('../utils/pacotes'); // Função que busca os pacotes
+const { obterPacote } = require('../utils/pacotes'); // Importa a função
 
 class PagamentosService {
   constructor() {
@@ -10,33 +10,30 @@ class PagamentosService {
     this.chatId = process.env.TELEGRAM_CHAT_ID; // ID do chat no Telegram
   }
 
-  // Função para escapar caracteres especiais no HTML do Telegram
-  escapeHtmlTelegram(text) {
-    if (!text) return '';
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  // Método para enviar mensagens ao Telegram
+  // Método para formatar e enviar mensagens ao Telegram
   async enviarMensagemTelegram(mensagem) {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
+
+    console.log('Tentando enviar mensagem ao Telegram...');
+    console.log('URL:', url);
+    console.log('Chat ID:', this.chatId);
+    console.log('Mensagem:', mensagem);
 
     try {
       const response = await axios.post(url, {
         chat_id: this.chatId,
         text: mensagem,
-        parse_mode: 'HTML',
+        parse_mode: 'HTML', // Formatação HTML válida no Telegram
         disable_web_page_preview: false
       });
 
       console.log('✅ Mensagem enviada com sucesso:', response.data);
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem para o Telegram:', error.message);
-      if (error.response) console.error('📌 Resposta da API:', error.response.data);
+
+      if (error.response) {
+        console.error('📌 Resposta da API:', error.response.data);
+      }
     }
   }
 
@@ -56,15 +53,9 @@ class PagamentosService {
 
       console.log('📌 Nova venda recebida:', novaVenda);
 
-      // Escapa todos os campos para HTML
-      const usuarioNome = this.escapeHtmlTelegram(novaVenda.usuarioQpanel?.nome || 'Não criado');
-      const usuarioSenha = this.escapeHtmlTelegram(novaVenda.usuarioQpanel?.senha || 'Não criado');
-      const nomeCliente = this.escapeHtmlTelegram(novaVenda.nome || 'N/A');
-      const emailCliente = this.escapeHtmlTelegram(novaVenda.email || 'N/A');
-      const telefoneCliente = this.escapeHtmlTelegram(novaVenda.celular || 'N/A');
-      const plataforma = this.escapeHtmlTelegram(novaVenda.plataforma || 'N/A');
+      const usuarioNome = novaVenda.usuarioQpanel?.nome || 'Não criado';
+      const usuarioSenha = novaVenda.usuarioQpanel?.senha || 'Não criado';
 
-      // Obtem pacote
       const packageId = novaVenda.usuarioQpanel?.package_id;
       let nomePlano = "Plano Desconhecido";
       let valorPlano = "0.00";
@@ -73,47 +64,43 @@ class PagamentosService {
         try {
           const pacoteEncontrado = obterPacote(null, null, packageId);
           if (pacoteEncontrado) {
-            nomePlano = this.escapeHtmlTelegram(pacoteEncontrado.nome);
-            valorPlano = this.escapeHtmlTelegram(pacoteEncontrado.valor.toString());
+            nomePlano = pacoteEncontrado.nome;
+            valorPlano = pacoteEncontrado.valor;
           }
         } catch (error) {
           console.error('❌ Erro ao buscar pacote:', error.message);
         }
       }
 
-      // Monta a mensagem em HTML
-      const mensagem = `
-<b>NOVA VENDA RECEBIDA! 🚀</b><br>
-<b>Plataforma:</b> ${plataforma}<br>
-<b>Nome do Cliente:</b> ${nomeCliente}<br>
-<b>Email do Cliente:</b> ${emailCliente}<br>
-<b>Telefone:</b> ${telefoneCliente}<br>
-<b>Valor do Plano:</b> R$${valorPlano}<br>
-<b>Plano Contratado:</b> ${nomePlano}<br>
-<b>Usuário:</b> ${usuarioNome}<br>
-<b>Senha:</b> ${usuarioSenha}<br><br>
+      const mensagem = `<b>NOVA VENDA RECEBIDA! 🚀</b>\n` +
+        `<b>Plataforma:</b> ${novaVenda.plataforma || 'N/A'}\n` +
+        `<b>Nome do Cliente:</b> ${novaVenda.nome || 'N/A'}\n` +
+        `<b>Email do Cliente:</b> ${novaVenda.email || 'N/A'}\n` +
+        `<b>Telefone:</b> ${novaVenda.celular || 'N/A'}\n` +
+        `<b>Valor do Plano:</b> R$${valorPlano}\n` +
+        `<b>Plano Contratado:</b> ${nomePlano}\n` +
+        `<b>Usuário:</b> ${usuarioNome}\n` +
+        `<b>Senha:</b> ${usuarioSenha}\n\n` +
 
-<b>Links de Acesso:</b><br>
-🌐 <b>STB/SMARTUP/SSIPTV:</b> 178.156.149.200<br>
-✅ <b>WEB PLAYER:</b> <a href="http://wfmixx.wplay.lat/">Acessar</a><br>
-✅ <b>Aplicativo Android WF MIXX:</b> <a href="https://aftv.news/5999178">Download</a><br>
-📺 <b>Max Player iPhone:</b> Solicitar desbloqueio ao suporte<br>
-✅ <b>IBO Control:</b> Play Store TV Android e Box<br>
-✅ <b>Lazer Play:</b> <a href="https://lazerplay.io/#/upload-playlist">Adicionar Playlist</a><br><br>
+        `<b>Links de Acesso:</b>\n` +
+        `🌐 <b>STB/SMARTUP/SSIPTV:</b> 178.156.149.200\n` +
+        `✅ <b>WEB PLAYER:</b> <a href="http://wfmixx.wplay.lat/">Acessar</a>\n` +
+        `✅ <b>Aplicativo Android WF MIXX:</b> <a href="https://aftv.news/5999178">Download</a>\n` +
+        `📺 <b>Max Player iPhone:</b> Solicitar desbloqueio ao suporte\n` +
+        `✅ <b>IBO Control:</b> Play Store TV Android e Box\n` +
+        `✅ <b>Lazer Play:</b> <a href="https://lazerplay.io/#/upload-playlist">Adicionar Playlist</a>\n\n` +
 
-<b>M3U Links:</b><br>
-🟠 Todos Apps: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a><br>
-🟡 CloudDy: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a><br>
-🔴 SSIPTV: <a href="http://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv">Link</a><br>
-🟡 HLS Set IPTV: <a href="http://75924gx.click/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=hls">Link</a><br><br>
+        `<b>M3U Links:</b>\n` +
+        `🟠 Todos Apps: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a>\n` +
+        `🟡 CloudDy: <a href="http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts">Link</a>\n` +
+        `🔴 SSIPTV: <a href="http://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv">Link</a>\n` +
+        `🟡 HLS Set IPTV: <a href="http://75924gx.click/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=hls">Link</a>\n\n` +
 
-<b>Suporte:</b><br>
-WhatsApp: <a href="https://bit.ly/ajudaffiliado">Clique aqui</a><br>
-E-mail: atende@worldflick.site<br>
-Site oficial: www.worldflick.site
-`;
+        `<b>Suporte:</b>\n` +
+        `WhatsApp: <a href="https://bit.ly/ajudaffiliado">Clique aqui</a>\n` +
+        `E-mail: atende@worldflick.site\n` +
+        `Site oficial: www.worldflick.site`;
 
-      // Envia a mensagem ao Telegram
       await this.enviarMensagemTelegram(mensagem);
 
       // Marca a venda como processada
