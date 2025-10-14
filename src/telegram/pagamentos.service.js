@@ -90,26 +90,9 @@ Plano Contratado: ${nomePlano}
 Usuário: \`${usuarioNome}\`
 Senha: \`${usuarioSenha}\`
 
-LAZER PLAY E ADICIONA OU NO SITE:
-https://lazerplay.io/#/upload-playlist
-CODIGO: worldflick
-USUARIO: \`${usuarioNome}\`
-SENHA: \`${usuarioSenha}\`
 
-✅ APLICATIVO PARCEIRO MAX PLAYER: >>> - IPHONE - <<<
-APÓS INSTALAR O MAX PLAYER SOLICITE DESBLOQUEIO AO SUPORTE
 
-✅ APP NA PLAYSTORE TV BOX E CELULAR: IBO CONTROL OU XTREAM ULTRA
-✅ APP NA PLAYSTORE TV ANDROID: IBO CONTROL
-✅APLICATIVO PARCEIRO LAZER PLAY: APENAS LG, SAMSUNG, ROKU
 
-🟢 Link (M3U): http://worldflick.xyz/get.php?username=${usuarioNome}&password=${usuarioSenha}&type=m3u_plus&output=mpegts
-🔴 Link (SSIPTV): https://ss.cd1mu9.eu/p/${usuarioNome}/${usuarioSenha}/ssiptv
-
-🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
-✅ WEB PLAYER: http://wfmixx.wplay.lat/
-✅ APLICATIVO PRÓPRIO ANDROID WF MIXX: https://aftv.news/5999178
-*Site oficial: www.worldflick.site
 `;
 
     // Envia a mensagem ao Telegram
