@@ -2,13 +2,13 @@ require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
 
-// Função para mapear o package_id → nome do plano + valor
+// 🧩 Mapeamento dos pacotes válidos
 function obterPacote(package_id) {
   const pacotes = {
-    'el-id-6713-13': { nome: '1 Mês Completo', valor: '19.90' },
-    'el-id-6713-15': { nome: '3 Meses Completo', valor: '39.90' },
-    'el-id-6713-17': { nome: '6 Meses Completo', valor: '69.90' },
-    'el-id-6713-19': { nome: '12 Meses Completo', valor: '129.90' },
+    'zpKDN6DXlE': { nome: '0️⃣1️⃣ MÊS S/ ADULTO - 3 TELAS', valor: 18.9 },
+    'kmVLl71QwB': { nome: '0️⃣3️⃣ MESES S/ ADULTO - 3 TELAS', valor: 38.9 },
+    'XYgD9JWr6V': { nome: '0️⃣6️⃣ MESES S/ ADULTO - 3 TELAS', valor: 64.9 },
+    'PkaL4qdDgr': { nome: '1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS', valor: 124.99 },
   };
 
   return pacotes[package_id] || { nome: 'Plano Desconhecido', valor: '0.00' };
