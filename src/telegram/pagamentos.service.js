@@ -14,7 +14,7 @@ function obterPacote(package_id) {
   return pacotes[package_id] || { nome: 'Plano Desconhecido', valor: '0.00' };
 }
 
-class UsuariosTelegramService {
+class PagamentosService {
   constructor() {
     this.prisma = new PrismaClient();
     this.botToken = process.env.TELEGRAM_BOT_PAGAMENTOS;
@@ -125,4 +125,4 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-module.exports = { UsuariosTelegramService };
+module.exports = PagamentosService;
