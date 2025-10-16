@@ -10,6 +10,8 @@ const API_URL = 'https://worldflick.sigmab.pro/api/webhook';
 const API_TOKEN = process.env.API_TOKEN;
 const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
 
+const SENHA_PADRAO = 'Flick10top';
+
 // Função para gerar username aleatório
 function generateUsername(length = 12) {
   const numbers = '0123456789';
@@ -20,10 +22,7 @@ function generateUsername(length = 12) {
   return username;
 }
 
-// Senha padrão fixa
-const SENHA_PADRAO = 'Flick10top';
-
-// Função para deletar usuário no QPanel
+// Deletar usuário no QPanel
 async function deletarUsuarioQpanel(username) {
   try {
     await axios.delete(`${API_URL}/customer`, {
@@ -38,7 +37,7 @@ async function deletarUsuarioQpanel(username) {
     });
     console.log(`🗑️ Usuário ${username} deletado do QPanel (se existia)`);
   } catch (error) {
-    console.error(`⚠️ Erro ao tentar deletar usuário ${username} no QPanel:`, error.response?.data || error.message);
+    console.error(`⚠️ Erro ao deletar usuário ${username}:`, error.response?.data || error.message);
   }
 }
 
@@ -47,11 +46,12 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
   try {
     console.log('🔍 Verificando se o usuário já existe no banco...');
 
+    // Verifica se já existe
     const usuarioBanco = await prisma.usuarioQpanel.findFirst({
       where: {
         OR: [
-          { email: whatsapp },
-          { celular: email }
+          { email: email },
+          { celular: whatsapp }
         ]
       }
     });
@@ -67,13 +67,12 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       console.log(`🛑 Deletando usuário ${username} no QPanel...`);
       await deletarUsuarioQpanel(username);
 
-      console.log(`🛑 Deletando usuário no banco de dados...`);
+      console.log(`🛑 Deletando usuário do banco de dados...`);
       await prisma.usuarioQpanel.delete({ where: { id: usuarioBanco.id } });
 
     } else {
       console.log('🆕 Novo usuário. Gerando username...');
       username = generateUsername();
-      // password já é fixa
     }
 
     console.log('🛠 Criando usuário no QPanel...');
@@ -83,8 +82,8 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       username,
       password,
       name: nome,
-      email: whatsapp,
-      whatsapp: email,
+      email: email,       // email correto
+      whatsapp: whatsapp, // telefone correto
     }, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
@@ -92,37 +91,47 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       }
     });
 
-    if (response.data && response.data.username) {
-      console.log('✅ Usuário criado no QPanel:', response.data);
-
-      const usuarioCriado = await prisma.usuarioQpanel.create({
-        data: {
-          nome: username,
-          email: whatsapp,
-          celular: email,
-          senha: password,
-          package_id: serverPackageId,
-          criadoEm: new Date(),
-          atualizadoEm: new Date(),
-          dataExpiracao,
-        }
-      });
-
-      console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
-
-      await logiNenviarEmail(
-        usuarioCriado.email,
-        usuarioCriado.nome,
-        usuarioCriado.senha,
-        usuarioCriado.package_id,
-        usuarioCriado.criadoEm,
-        usuarioCriado.dataExpiracao
-      );
-
-      return usuarioCriado;
-    } else {
+    if (!response.data || !response.data.username) {
       throw new Error('❌ Erro ao criar usuário: resposta inesperada da API.');
     }
+
+    console.log('✅ Usuário criado no QPanel:', response.data);
+
+    // Salva no banco
+    const usuarioCriado = await prisma.usuarioQpanel.create({
+      data: {
+        nome: username,
+        email: email,
+        celular: whatsapp,
+        senha: password,
+        package_id: serverPackageId,
+        criadoEm: new Date(),
+        atualizadoEm: new Date(),
+        dataExpiracao,
+      }
+    });
+
+    console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
+
+    // Vincular a venda ao usuário
+    await prisma.venda.updateMany({
+      where: { email: email },
+      data: { usuarioId: usuarioCriado.id }
+    });
+    console.log('🔗 Vendas vinculadas ao usuário no banco');
+
+    // Enviar email
+    await logiNenviarEmail(
+      usuarioCriado.email,
+      usuarioCriado.nome,
+      usuarioCriado.senha,
+      usuarioCriado.package_id,
+      usuarioCriado.criadoEm,
+      usuarioCriado.dataExpiracao
+    );
+    console.log('✅ Email enviado com sucesso');
+
+    return usuarioCriado;
 
   } catch (error) {
     console.error('❌ Erro geral:', error.response?.data || error.message);
