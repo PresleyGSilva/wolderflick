@@ -74,10 +74,10 @@ async function logiNenviarEmail(email, username, password, plano, created_at, ex
 USUARIO CRIADO COM SUCESSO !!!
 
 🌐 DNS URL XCIPTV: http://75924gx.click
-✅ Usuário: ${username
+✅ Usuário:  ${username}
 ✅ Senha: ${password}
 📶 Conexões: 3
-🗓️ Vencimento: 07/01/2026 22:06:15
+🗓️ Vencimento:  ${expires_at}
 
 🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
 
