@@ -99,7 +99,7 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       throw new Error('❌ Erro ao criar usuário: resposta inesperada da API.');
     }
 
-    console.log(`👤 Dados do Cliente criado: Nome: ${nome}, Username: ${username}, Email: ${whatsapp, WhatsApp: }${email}`);
+    console.log(`👤 Dados do Cliente criado: Nome: ${nome}, Username: ${username}, Email: ${whatsapp}, WhatsApp: ${email}`);
     console.log('✅ Usuário criado no QPanel:', response.data);
 
 
