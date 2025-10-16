@@ -96,18 +96,19 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     if (response.data && response.data.username) {
       console.log('✅ Usuário criado no QPanel:', response.data);
 
-      const usuarioCriado = await prisma.usuarioQpanel.create({
-        data: {
-          nome: username,
-          email: whatsapp,
-          celular: email,
-          senha: password, // 👉 Senha padrão fixa
-          package_id: serverPackageId,
-          criadoEm: new Date(),
-          atualizadoEm: new Date(),
-          dataExpiracao: dataExpiracao,
-        }
-      });
+    const usuarioCriado = await prisma.usuarioQpanel.create({
+  data: {
+    nome: username,
+    email: email,      // correto: o e-mail do cliente
+    celular: whatsapp, // correto: o celular do cliente
+    senha: password,
+    package_id: serverPackageId,
+    criadoEm: new Date(),
+    atualizadoEm: new Date(),
+    dataExpiracao: dataExpiracao,
+  }
+});
+
 
       console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
 
