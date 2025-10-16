@@ -85,8 +85,8 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       username: username,
       password: password,
       name: nome,
-      email: email,
-      whatsapp: whatsapp,
+      email: whatsapp,
+      whatsapp: email,
     }, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
@@ -104,8 +104,8 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     const usuarioCriado = await prisma.usuarioQpanel.create({
       data: {
         nome: username,
-        email: email,
-        celular: whatsapp,
+        email: whatsapp,
+        celular:email ,
         senha: password,
         package_id: serverPackageId,
         criadoEm: new Date(),
