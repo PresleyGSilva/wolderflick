@@ -11,6 +11,7 @@ const prisma = new PrismaClient();
 const API_URL = 'https://worldflick.sigmab.pro/api/webhook';
 const API_TOKEN = process.env.API_TOKEN;
 const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
+const SENHA_PADRAO = 'Flick10top';
 
 // 🔵 Utilitárioss
 function generateUsername(length = 12) {
@@ -22,14 +23,6 @@ function generateUsername(length = 12) {
   return username;
 }
 
-function generatePassword(length = 8) {
-  const chars = '0123456789';
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
 
 // 🔵 Função para deletar no QPanel
 async function deletarUsuarioQpanel(username) {
@@ -64,7 +57,7 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     });
 
     let username;
-    let password;
+    let password = SENHA_PADRAO;
 
     if (usuarioBanco) {
       console.log(`⚠️ Usuário encontrado no banco: ${usuarioBanco.nome}`);
