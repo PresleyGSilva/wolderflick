@@ -7,25 +7,20 @@ const prisma = new PrismaClient();
 const redis = new Redis('redis://default:q9I8QyrFWcB93O8TW6EI4beJey55EnPK@redis-15509.c91.us-east-1-3.ec2.redns.redis-cloud.com:15509');
 
 // -------------------- CONFIGURAÇÃO DO TRANSPORTER --------------------
-// -------------------- CONFIGURAÇÃO DO TRANSPORTER --------------------
 function createTransporter() {
   return nodemailer.createTransport({
-    host: 'smtp.hostinger.com', // servidor SMTP Hostinger
-    port: 465,                  // SSL
-    secure: true,               // true para SSL na porta 465
+    host: 'smtp.hostinger.com',
+    port: 465,
+    secure: true,
     auth: {
-      user: 'visionplayoficial@visionplay.lat', // seu e-mail Hostinger
-      pass: '130829Be@16',                     // senha do e-mail
+      user: 'visionplayoficial@visionplay.lat',
+      pass: '130829Be@16',
     },
-    tls: {
-      rejectUnauthorized: false // evita erros de certificado
-    }
+    tls: { rejectUnauthorized: false },
   });
 }
 
-const transporter = createTransporter();
-
-
+// Instância única do transporter
 const transporter = createTransporter();
 
 // -------------------- FUNÇÕES DE ENVIO --------------------
@@ -61,7 +56,7 @@ async function enviarEmailGenerico(mailOptions) {
     console.log('E-mail enviado com sucesso:', mailOptions.to);
   } catch (error) {
     console.error('Erro ao enviar e-mail:', error);
-    await redis.lpush('fila-emails', JSON.stringify(mailOptions));  // Adiciona à fila de emails em caso de erro
+    await redis.lpush('fila-emails', JSON.stringify(mailOptions));
   }
 }
 
@@ -84,7 +79,6 @@ USUARIO CRIADO COM SUCESSO !!!
 🗓️ Vencimento:  ${expires_at}
 
 🟢 STB/SMARTUP/SSIPTV: 178.156.149.200
-
 ✅ WEB PLAYER: http://wfmixx.wplay.lat/
 USAR EM COMPUTADOR, NOTEBOOK, XBOX, PHILCO NET RANGE, SONY BRAVIA, PS4 !!!
 
@@ -93,41 +87,14 @@ LINK DOWNLOADER: https://aftv.news/5999178
 CÓDIGO DOWNLOADER: 5999178
 CÓDIGO NTDOWN: 99879
 
-✅ APLICATIVO PARCEIRO MAX PLAYER: >>> - IPHONE -
->>>> APÓS INSTALAR O MAX PLAYER SOLICITE DESBLOQUEIO AO SUPORTE !!! <<<<
-
-✅ APP NA PLAYSTORE TV BOX E CELULAR: WFPRO, IBO CONTROL OU XTREAM ULTRA
-
-✅ APP NA PLAYSTORE TV ANDROID: IBO CONTROL 
-
-✅APLICATIVO PARCEIRO LAZER PLAY:
-APENAS LG, SAMSUNG, ROKU !!!
-
-CLIENTE ENTRA EM PLAYLIST NO APP LAZER PLAY E ADICIONA OU NO SITE:
-https://lazerplay.io/#/upload-playlist
-CODIGO: worldflick
-USUARIO:${username}
-SENHA: ${password}
-
-🟠 M3U TODOS APLICATIVOS:
-http://75924gx.click/get.php?${username}=27996041873&password=${password}&type=m3u_plus&output=mpegts
-
-🟡 M3U APLICATIVO CLOUDDY: 
-http://75924gx.click/get.php?${username}=27996041873&password=${password}&type=m3u_plus&output=mpegts
-
-🔴 Link (SSIPTV): http://ss.cd1mu9.eu/p/${username}/${password}/ssiptv
-
-🟡 Link (HLS) SET IPTV: http://75924gx.click/get.php?${username}=27996041873&password=${password}&type=m3u_plus&output=hls
-
 SUPORTE:
 WHATSAPP: https://bit.ly/ajudaffiliado
 E-MAIL: atende@worldflick.site
-
-SITE OFICIAL: www.worldfick.site
+SITE OFICIAL: www.worldflick.site
 `;
 
   const mailOptions = {
-    from: 'visionplayoficial@visionplay.la',
+    from: 'visionplayoficial@visionplay.lat',
     to: email,
     subject: 'Seu Acesso ao WorldFlick',
     text: corpo,
@@ -168,10 +135,7 @@ async function enviarEmailUsuarioQpanel(userId) {
 
 async function criarUsuarioEEnviarEmail(dadosUsuario) {
   try {
-    const novoUsuario = await prisma.usuarioQpanel.create({
-      data: dadosUsuario,
-    });
-
+    const novoUsuario = await prisma.usuarioQpanel.create({ data: dadosUsuario });
     await enviarEmailUsuarioQpanel(novoUsuario.id);
 
   } catch (error) {
@@ -193,7 +157,7 @@ async function criarUsuarioEEnviarEmail(dadosUsuario) {
 async function processarFilaEmails() {
   let count = 0;
   const maxProcess = 100;
-  
+
   while (count < maxProcess) {
     const emailData = await redis.rpop('fila-emails');
     if (emailData) {
