@@ -4,7 +4,7 @@ const Redis = require('ioredis');
 const cron = require('node-cron');
 
 const prisma = new PrismaClient();
-const redis = new Redis('rediss://red-cshr5qu8ii6s73bkflgg:9QuiIogKKZhZBokDxlmqE43A8clbGTit@ohio-redis.render.com:6379');
+const redis = new Redis('redis://default:q9I8QyrFWcB93O8TW6EI4beJey55EnPK@redis-15509.c91.us-east-1-3.ec2.redns.redis-cloud.com:15509');
 
 // -------------------- CONFIGURAÇÃO DO TRANSPORTER --------------------
 function createTransporter() {
