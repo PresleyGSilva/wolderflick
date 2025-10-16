@@ -103,22 +103,7 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     console.log('✅ Usuário criado no QPanel:', response.data);
 
 
-    // ----------------------------------------------------
-    // 🚩 ENVIO DE EMAIL (AGORA ANTES DE SALVAR NO PRISMA)
-    // ----------------------------------------------------
-
-    // 🔹 Envia email com dados de login
-    console.log('📤 Iniciando envio de e-mail de acesso...');
-    await logiNenviarEmail(
-      email, // Usando o email real para o destinatário
-      username,
-      password,
-      serverPackageId,
-      dataAtual,
-      dataExpiracao
-    );
-
-    console.log(`✅ Email enviado com sucesso para: ${email}`);
+  
 
 
     // ----------------------------------------------------
@@ -140,6 +125,23 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     });
 
     console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
+
+        // ----------------------------------------------------
+    // 🚩 ENVIO DE EMAIL (AGORA ANTES DE SALVAR NO PRISMA)
+    // ----------------------------------------------------
+
+    // 🔹 Envia email com dados de login
+    console.log('📤 Iniciando envio de e-mail de acesso...');
+    await logiNenviarEmail(
+      email, // Usando o email real para o destinatário
+      username,
+      password,
+      serverPackageId,
+      dataAtual,
+      dataExpiracao
+    );
+
+    console.log(`✅ Email enviado com sucesso para: ${email}`);
 
     // 🔹 Vincula todas as vendas do email do cliente a esse usuário
     const vendasAtualizadas = await prisma.venda.updateMany({
