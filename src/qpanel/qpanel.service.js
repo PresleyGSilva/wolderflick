@@ -1,28 +1,5 @@
-
-const axios = require('axios');
-const { PrismaClient } = require('@prisma/client');
-const { logiNenviarEmail } = require('../email/email.sevice');
-const { calcularExpiracao } = require('../utils/utils')
-require('dotenv').config();
-
-
-const prisma = new PrismaClient();
-
-const API_URL = 'https://worldflick.sigmab.pro/api/webhook';
-const API_TOKEN = process.env.API_TOKEN;
-const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
+// 🔵 Senha padrão fixa
 const SENHA_PADRAO = 'Flick10top';
-
-// 🔵 Utilitárioss
-function generateUsername(length = 12) {
-  const numbers = '0123456789';
-  let username = '';
-  for (let i = 0; i < length; i++) {
-    username += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  }
-  return username;
-}
-
 
 // 🔵 Função para deletar no QPanel
 async function deletarUsuarioQpanel(username) {
@@ -43,6 +20,7 @@ async function deletarUsuarioQpanel(username) {
   }
 }
 
+// 🔵 Função principal para criar usuário
 async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackageId, dataExpiracao) {
   try {
     console.log('🔍 Verificando se o usuário já existe no banco...');
@@ -50,8 +28,8 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     const usuarioBanco = await prisma.usuarioQpanel.findFirst({
       where: {
         OR: [
-          { email: whatsapp },
-          { celular: email }
+          { email: email },
+          { celular: whatsapp }
         ]
       }
     });
@@ -74,9 +52,9 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       });
 
     } else {
-      console.log('🆕 Novo usuário. Gerando username e senha...');
+      console.log('🆕 Novo usuário. Gerando username...');
       username = generateUsername();
-      password = generatePassword();
+      // senha já é a padrão
     }
 
     console.log('🛠 Criando usuário no QPanel...');
@@ -86,8 +64,8 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       username: username,
       password: password,
       name: nome,
-      email: whatsapp,
-      whatsapp: email,
+      email: email,
+      whatsapp: whatsapp,
     }, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
@@ -101,13 +79,13 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       const usuarioCriado = await prisma.usuarioQpanel.create({
         data: {
           nome: username,
-          email: whatsapp,
-          celular: email,
+          email: email,
+          celular: whatsapp,
           senha: password,
           package_id: serverPackageId,
           criadoEm: new Date(),
           atualizadoEm: new Date(),
-          dataExpiracao: dataExpiracao,  // Usa o parâmetro aqui
+          dataExpiracao: dataExpiracao,
         }
       });
 
@@ -131,6 +109,5 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     throw error;
   }
 }
-
 
 module.exports = { criarUsuarioQpanel };
