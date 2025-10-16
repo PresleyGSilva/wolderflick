@@ -1,3 +1,25 @@
+const axios = require('axios');
+const { PrismaClient } = require('@prisma/client');
+const { logiNenviarEmail } = require('../email/email.sevice');
+const { calcularExpiracao } = require('../utils/utils');
+require('dotenv').config();
+
+const prisma = new PrismaClient();
+
+const API_URL = 'https://worldflick.sigmab.pro/api/webhook';
+const API_TOKEN = process.env.API_TOKEN;
+const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
+
+// 🔵 Utilitários
+function generateUsername(length = 12) {
+  const numbers = '0123456789';
+  let username = '';
+  for (let i = 0; i < length; i++) {
+    username += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
+  return username;
+}
+
 // 🔵 Senha padrão fixa
 const SENHA_PADRAO = 'Flick10top';
 
@@ -54,7 +76,6 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     } else {
       console.log('🆕 Novo usuário. Gerando username...');
       username = generateUsername();
-      // senha já é a padrão
     }
 
     console.log('🛠 Criando usuário no QPanel...');
@@ -73,37 +94,50 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       }
     });
 
-    if (response.data && response.data.username) {
-      console.log('✅ Usuário criado no QPanel:', response.data);
-
-      const usuarioCriado = await prisma.usuarioQpanel.create({
-        data: {
-          nome: username,
-          email: email,
-          celular: whatsapp,
-          senha: password,
-          package_id: serverPackageId,
-          criadoEm: new Date(),
-          atualizadoEm: new Date(),
-          dataExpiracao: dataExpiracao,
-        }
-      });
-
-      console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
-
-      await logiNenviarEmail(
-        usuarioCriado.email,
-        usuarioCriado.nome,
-        usuarioCriado.senha,
-        usuarioCriado.package_id,
-        usuarioCriado.criadoEm,
-        usuarioCriado.dataExpiracao
-      );
-
-      return usuarioCriado;
-    } else {
+    if (!response.data || !response.data.username) {
       throw new Error('❌ Erro ao criar usuário: resposta inesperada da API.');
     }
+
+    console.log('✅ Usuário criado no QPanel:', response.data);
+
+    // 🔹 Salva usuário no banco
+    const usuarioCriado = await prisma.usuarioQpanel.create({
+      data: {
+        nome: username,
+        email: email,
+        celular: whatsapp,
+        senha: password,
+        package_id: serverPackageId,
+        criadoEm: new Date(),
+        atualizadoEm: new Date(),
+        dataExpiracao: dataExpiracao,
+      }
+    });
+
+    console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
+
+    // 🔹 Vincula todas as vendas do email do cliente a esse usuário
+    const vendasAtualizadas = await prisma.venda.updateMany({
+      where: { email: email },
+      data: { usuarioQpanelId: usuarioCriado.id }
+    });
+
+    console.log(`🔗 Vendas vinculadas ao usuário: ${vendasAtualizadas.count}`);
+
+    // 🔹 Envia email com dados de login
+    await logiNenviarEmail(
+      usuarioCriado.email,
+      usuarioCriado.nome,
+      usuarioCriado.senha,
+      usuarioCriado.package_id,
+      usuarioCriado.criadoEm,
+      usuarioCriado.dataExpiracao
+    );
+
+    console.log(`📤 Email enviado para: ${usuarioCriado.email}`);
+
+    return usuarioCriado;
+
   } catch (error) {
     console.error('❌ Erro geral:', error.response?.data || error.message);
     throw error;
