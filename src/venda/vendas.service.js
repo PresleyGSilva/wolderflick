@@ -1,13 +1,17 @@
+// vendas.service.js
+const axios = require('axios');
+const { PrismaClient } = require('@prisma/client');
+const { logiNenviarEmail } = require('../email/email.sevice');
+const { calcularExpiracao } = require('../utils/utils');
+const { formatInTimeZone } = require('date-fns-tz');
 const { criarVenda, vincularUsuarioVenda } = require('../database/prisma/prisma.service.js');
 const { obterPacote } = require('../utils/pacotes.js');
 const { criarUsuarioQpanel } = require('../qpanel/qpanel.service.js');
 const { renovarUsuarioQpanel } = require('../qpanel/renovarAssinaturaQpanel.js');
-const { logiNenviarEmail } = require('../email/email.sevice.js');
-const { calcularExpiracao } = require('../utils/utils.js');
-const { formatInTimeZone } = require('date-fns-tz');
-const { PrismaClient } = require('@prisma/client');
+
 const prisma = new PrismaClient();
 
+// -------------------- Helpers --------------------
 function formatarDataBrasil(data) {
   try {
     if (!data || isNaN(new Date(data))) throw new Error("Data inválida");
@@ -17,17 +21,25 @@ function formatarDataBrasil(data) {
   }
 }
 
-let filaDeVendas = [];
-let processando = false;
-
 function formatarNumeroSemMais(numero) {
   return numero.replace(/\D/g, '');
 }
 
+// -------------------- Fila de vendas --------------------
+let filaDeVendas = [];
+let processando = false;
+
+function adicionarVendaAFila(dadosVenda) {
+  filaDeVendas.push(dadosVenda);
+  processarFila();
+}
+
+// -------------------- Funções internas --------------------
 async function enviarConfirmacaoRenovacao(email, { usuario, proximoVencimento }) {
   console.log(`✉️ Enviando confirmação de renovação para ${usuario} (${email}), próximo vencimento: ${proximoVencimento}`);
 }
 
+// -------------------- Processamento da fila --------------------
 async function processarFila() {
   if (processando || filaDeVendas.length === 0) return;
   processando = true;
@@ -48,6 +60,7 @@ async function processarFila() {
     let usuarioQpanel;
     let enviarCredenciais = true;
 
+    // Verifica se usuário já existe
     const usuarioBanco = await prisma.usuarioQpanel.findFirst({
       where: { OR: [{ nome }, { email }, { celular }] }
     });
@@ -62,14 +75,29 @@ async function processarFila() {
         usuarioQpanel = usuarioBanco;
         enviarCredenciais = false;
       }
-      await enviarConfirmacaoRenovacao(email, { usuario: usuarioQpanel.nome, proximoVencimento: formatarDataBrasil(usuarioQpanel.dataExpiracao) });
+
+      await enviarConfirmacaoRenovacao(email, {
+        usuario: usuarioQpanel.nome,
+        proximoVencimento: formatarDataBrasil(usuarioQpanel.dataExpiracao)
+      });
+
     } else {
       const dataExpiracao = calcularExpiracao(pacote.nome);
-      usuarioQpanel = await criarUsuarioQpanel(nome, email, celular, celular, pacote.packageId, dataExpiracao.toISOString());
+
+      // Criando novo usuário no QPanel
+      usuarioQpanel = await criarUsuarioQpanel(
+        nome,       // nome do cliente
+        email,      // e-mail do cliente
+        celular,    // celular do cliente
+        pacote.packageId,
+        pacote.serverPackageId, // se necessário
+        dataExpiracao.toISOString()
+      );
     }
 
     if (!usuarioQpanel?.id) throw new Error('❌ Usuário QPanel não possui ID');
 
+    // Criar venda vinculada ao usuário
     const novaVenda = await criarVenda({
       plataforma: dadosVenda.plataforma,
       transStatus: dadosVenda.statusPagamento,
@@ -87,6 +115,7 @@ async function processarFila() {
 
     await vincularUsuarioVenda(novaVenda.id, usuarioQpanel.id);
 
+    // Enviar e-mail com credenciais apenas se usuário for novo
     if (enviarCredenciais) {
       await logiNenviarEmail(
         usuarioQpanel.email || email,
@@ -109,12 +138,7 @@ async function processarFila() {
   processarFila();
 }
 
-function adicionarVendaAFila(dadosVenda) {
-  filaDeVendas.push(dadosVenda);
-  processarFila();
-}
-
-// Funções para processar vendas por plataforma
+// -------------------- Funções para processar vendas por plataforma --------------------
 async function processarVendaKirvano(dados) {
   const produto = (dados.products && dados.products[0]) || {};
   const valor = Number((produto.price || '').replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
