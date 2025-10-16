@@ -4,7 +4,6 @@ const { criarUsuarioQpanel } = require('../qpanel/qpanel.service.js');
 const { renovarUsuarioQpanel } = require('../qpanel/renovarAssinaturaQpanel.js');
 const { logiNenviarEmail } = require('../email/email.sevice.js');
 const { calcularExpiracao } = require('../utils/utils.js');
-
 const { formatInTimeZone } = require('date-fns-tz');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -21,27 +20,6 @@ function formatarDataBrasil(data) {
 let filaDeVendas = [];
 let processando = false;
 
-function verificarTamanhoDaFila() {
-  return filaDeVendas.length;
-}
-
-function verificarFilaVazia() {
-  return filaDeVendas.length === 0;
-}
-
-function obterDetalhesDaFila() {
-  return {
-    tamanho: filaDeVendas.length,
-    emProcessamento: processando,
-    vendasPendentes: filaDeVendas.map((venda, index) => ({
-      indice: index + 1,
-      nome: venda.nome,
-      email: venda.email,
-      plano: venda.plano,
-    })),
-  };
-}
-
 function formatarNumeroSemMais(numero) {
   return numero.replace(/\D/g, '');
 }
@@ -57,114 +35,72 @@ async function processarFila() {
   const dadosVenda = filaDeVendas.shift();
 
   try {
-    console.log(`🔄 Processando venda de ${dadosVenda.nome}`);
+    const nome = dadosVenda.nome?.trim();
+    const email = dadosVenda.email?.trim();
+    const celular = formatarNumeroSemMais(dadosVenda.celular?.trim() || '');
+    const cpf = dadosVenda.cpf?.trim();
 
-    const { nome, email, celular, cpf, dataCriacao } = dadosVenda;
-
-    const nomeFormatado = typeof nome === 'string' ? nome.trim() : '';
-    const emailFormatado = typeof email === 'string' ? email.trim() : '';
-    const celularFormatado = typeof celular === 'string' ? formatarNumeroSemMais(celular.trim()) : '';
-    const cpfFormatado = typeof cpf === 'string' ? cpf.trim() : '';
-
-    if (!nomeFormatado || !emailFormatado || !celularFormatado || !cpfFormatado) {
-      throw new Error('❌ Dados incompletos ou inválidos.');
-    }
-
-    console.log("📞 Celular formatado:", celularFormatado);
+    if (!nome || !email || !celular || !cpf) throw new Error('❌ Dados incompletos');
 
     const pacote = obterPacote(dadosVenda.plano, dadosVenda.valor, null);
-    if (!pacote || !pacote.packageId) throw new Error('⚠️ Pacote não encontrado.');
-
-    console.log("📦 Package ID selecionado:", pacote.packageId);
-
-    const usuarioBanco = await prisma.usuarioQpanel.findFirst({
-      where: {
-        OR: [
-          { nome: nomeFormatado },
-          { email: emailFormatado },
-          { celular: celularFormatado }
-        ]
-      }
-    });
+    if (!pacote?.packageId) throw new Error('⚠️ Pacote não encontrado');
 
     let usuarioQpanel;
     let enviarCredenciais = true;
 
-    if (usuarioBanco) {
-      console.log(`⚠️ Usuário encontrado no banco: ${usuarioBanco.nome}`);
+    const usuarioBanco = await prisma.usuarioQpanel.findFirst({
+      where: { OR: [{ nome }, { email }, { celular }] }
+    });
 
+    if (usuarioBanco) {
       const agora = new Date();
       const expirado = !usuarioBanco.dataExpiracao || new Date(usuarioBanco.dataExpiracao) <= agora;
 
       if (expirado) {
-        console.log(`♻️ Renovando usuário ${usuarioBanco.nome}`);
         usuarioQpanel = await renovarUsuarioQpanel(usuarioBanco.nome, dadosVenda.plano);
-        if (!usuarioQpanel) throw new Error('❌ Erro na renovação do usuário.');
-
-        await enviarConfirmacaoRenovacao(emailFormatado, {
-          usuario: usuarioQpanel.nome,
-          proximoVencimento: formatarDataBrasil(usuarioQpanel.dataExpiracao),
-        });
-
       } else {
         usuarioQpanel = usuarioBanco;
         enviarCredenciais = false;
-        console.log(`ℹ️ Usuário está ativo. Nenhuma ação de renovação necessária.`);
-
-        await enviarConfirmacaoRenovacao(emailFormatado, {
-          usuario: usuarioBanco.nome,
-          proximoVencimento: formatarDataBrasil(usuarioBanco.dataExpiracao),
-        });
       }
+      await enviarConfirmacaoRenovacao(email, { usuario: usuarioQpanel.nome, proximoVencimento: formatarDataBrasil(usuarioQpanel.dataExpiracao) });
     } else {
-      console.log(`✨ Criando novo usuário para ${nomeFormatado}...`);
-
       const dataExpiracao = calcularExpiracao(pacote.nome);
-      usuarioQpanel = await criarUsuarioQpanel(
-        nomeFormatado,
-        celularFormatado,
-        emailFormatado,
-        celularFormatado,
-        pacote.packageId,
-        dataExpiracao.toISOString()
-      );
-
-      if (!usuarioQpanel || !usuarioQpanel.nome) throw new Error('⚠️ Erro ao criar usuário no QPanel.');
+      usuarioQpanel = await criarUsuarioQpanel(nome, email, celular, celular, pacote.packageId, dataExpiracao.toISOString());
     }
 
-    const valorProdutoEmCentavos = Math.round(dadosVenda.valor * 100);
-    const dataCriacaoFormatada = formatarDataBrasil(new Date(dataCriacao));
+    if (!usuarioQpanel?.id) throw new Error('❌ Usuário QPanel não possui ID');
 
     const novaVenda = await criarVenda({
       plataforma: dadosVenda.plataforma,
       transStatus: dadosVenda.statusPagamento,
-      nome: nomeFormatado,
-      transValue: valorProdutoEmCentavos,
-      email: emailFormatado,
-      celular: celularFormatado,
-      cpf: cpfFormatado,
+      nome,
+      transValue: Math.round(dadosVenda.valor * 100),
+      email,
+      celular,
+      cpf,
       produto: pacote.nome,
-      criadoEm: dataCriacaoFormatada,
-      emailAfiliado: dadosVenda.emailAfiliado,
+      criadoEm: formatarDataBrasil(new Date(dadosVenda.dataCriacao)),
+      emailAfiliado: dadosVenda.emailAfiliado
     }, usuarioQpanel.id);
+
+    if (!novaVenda?.id) throw new Error('❌ Venda não criada');
 
     await vincularUsuarioVenda(novaVenda.id, usuarioQpanel.id);
 
     if (enviarCredenciais) {
       await logiNenviarEmail(
-        usuarioQpanel.email || emailFormatado,
-        usuarioQpanel.nome || nomeFormatado,
-        usuarioQpanel.senha || 'senha-não-disponível',
+        usuarioQpanel.email || email,
+        usuarioQpanel.nome || nome,
+        usuarioQpanel.senha || 'Flick10top',
         pacote.nome,
-        formatarDataBrasil(usuarioQpanel.criadoEm || new Date()),
-        formatarDataBrasil(usuarioQpanel.dataExpiracao || new Date()),
+        formatarDataBrasil(usuarioQpanel.criadoEm),
+        formatarDataBrasil(usuarioQpanel.dataExpiracao),
         dadosVenda.emailAfiliado
       );
-    } else {
-      console.log('✅ Venda registrada, mas credenciais não reenviadas porque o usuário já estava ativo.');
     }
 
-    console.log('✅ Venda processada com sucesso.');
+    console.log('✅ Venda processada com sucesso');
+
   } catch (error) {
     console.error('❌ Erro ao processar venda:', error.message);
   }
@@ -178,12 +114,12 @@ function adicionarVendaAFila(dadosVenda) {
   processarFila();
 }
 
+// Funções para processar vendas por plataforma
 async function processarVendaKirvano(dados) {
   const produto = (dados.products && dados.products[0]) || {};
-  const precoStr = produto.price || '';
-  const valor = Number(precoStr.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+  const valor = Number((produto.price || '').replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
 
-  const dadosVenda = {
+  adicionarVendaAFila({
     nome: dados.customer.name,
     email: dados.customer.email,
     celular: dados.customer.phone_number,
@@ -193,30 +129,17 @@ async function processarVendaKirvano(dados) {
     statusPagamento: dados.status || 'APPROVED',
     dataCriacao: new Date(dados.created_at),
     plataforma: 'Kirvano',
-    emailAfiliado: dados.affiliateEmail || null,
-  };
-
-  adicionarVendaAFila(dadosVenda);
+    emailAfiliado: dados.affiliateEmail || null
+  });
 }
 
-async function processarVendaVekssel(dadosVenda) {
-  adicionarVendaAFila(dadosVenda);
-}
-
-async function processarVendaBraip(dadosVenda) {
-  adicionarVendaAFila(dadosVenda);
-}
-
-async function processarVendaCakto(dadosVenda) {
-  adicionarVendaAFila(dadosVenda);
-}
+async function processarVendaVekssel(dadosVenda) { adicionarVendaAFila(dadosVenda); }
+async function processarVendaBraip(dadosVenda) { adicionarVendaAFila(dadosVenda); }
+async function processarVendaCakto(dadosVenda) { adicionarVendaAFila(dadosVenda); }
 
 module.exports = {
   processarVendaKirvano,
   processarVendaVekssel,
   processarVendaBraip,
-  processarVendaCakto,
-  verificarTamanhoDaFila,
-  verificarFilaVazia,
-  obterDetalhesDaFila,
+  processarVendaCakto
 };
