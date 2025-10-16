@@ -1,8 +1,9 @@
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 const { logiNenviarEmail } = require('../email/email.sevice');
-const { calcularExpiracao } = require('../utils/utils');
+const { calcularExpiracao } = require('../utils/utils')
 require('dotenv').config();
+
 
 const prisma = new PrismaClient();
 
@@ -10,7 +11,7 @@ const API_URL = 'https://worldflick.sigmab.pro/api/webhook';
 const API_TOKEN = process.env.API_TOKEN;
 const USER_ID = 'rlKWO3Wzo7'; // Seu UserID
 
-// 🔵 Função para gerar username aleatório (mantida)
+// 🔵 Utilitárioss
 function generateUsername(length = 12) {
   const numbers = '0123456789';
   let username = '';
@@ -20,10 +21,9 @@ function generateUsername(length = 12) {
   return username;
 }
 
-// 🔵 Senha padrão fixa
-const SENHA_PADRAO = 'Flick10top';
+ 🔵 Senha padrão fixa const SENHA_PADRAO = 'Flick10top';
 
-// 🔵 Função para deletar usuário no QPanel
+// 🔵 Função para deletar no QPanel
 async function deletarUsuarioQpanel(username) {
   try {
     await axios.delete(`${API_URL}/customer`, {
@@ -42,7 +42,6 @@ async function deletarUsuarioQpanel(username) {
   }
 }
 
-// 🔵 Função principal para criar usuário no QPanel
 async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackageId, dataExpiracao) {
   try {
     console.log('🔍 Verificando se o usuário já existe no banco...');
@@ -57,24 +56,26 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     });
 
     let username;
-    const password = SENHA_PADRAO; // 👉 Senha padrão fixa
+    let password = SENHA_PADRAO;
 
     if (usuarioBanco) {
       console.log(`⚠️ Usuário encontrado no banco: ${usuarioBanco.nome}`);
 
       username = usuarioBanco.nome;
+      password = usuarioBanco.senha;
 
       console.log(`🛑 Deletando usuário ${username} no QPanel...`);
       await deletarUsuarioQpanel(username);
 
-      console.log(`🗑️ Removendo usuário do banco de dados...`);
+      console.log(`🛑 Deletando usuário no banco de dados...`);
       await prisma.usuarioQpanel.delete({
         where: { id: usuarioBanco.id }
       });
 
     } else {
-      console.log('🆕 Novo usuário. Gerando username...');
+      console.log('🆕 Novo usuário. Gerando username e senha...');
       username = generateUsername();
+      password = generatePassword();
     }
 
     console.log('🛠 Criando usuário no QPanel...');
@@ -82,7 +83,7 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
       userId: USER_ID,
       packageId: serverPackageId,
       username: username,
-      password: password, // 👉 Senha fixa
+      password: password,
       name: nome,
       email: whatsapp,
       whatsapp: email,
@@ -96,19 +97,18 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     if (response.data && response.data.username) {
       console.log('✅ Usuário criado no QPanel:', response.data);
 
-    const usuarioCriado = await prisma.usuarioQpanel.create({
-  data: {
-    nome: username,
-    email: email,      // correto: o e-mail do cliente
-    celular: whatsapp, // correto: o celular do cliente
-    senha: password,
-    package_id: serverPackageId,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-    dataExpiracao: dataExpiracao,
-  }
-});
-
+      const usuarioCriado = await prisma.usuarioQpanel.create({
+        data: {
+          nome: username,
+          email: whatsapp,
+          celular: email,
+          senha: password,
+          package_id: serverPackageId,
+          criadoEm: new Date(),
+          atualizadoEm: new Date(),
+          dataExpiracao: dataExpiracao,  // Usa o parâmetro aqui
+        }
+      });
 
       console.log('✅ Novo usuário salvo no banco:', usuarioCriado);
 
@@ -130,5 +130,6 @@ async function criarUsuarioQpanel(nome, email, whatsapp, packageId, serverPackag
     throw error;
   }
 }
+
 
 module.exports = { criarUsuarioQpanel };
