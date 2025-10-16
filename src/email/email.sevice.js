@@ -7,20 +7,24 @@ const prisma = new PrismaClient();
 const redis = new Redis('redis://default:q9I8QyrFWcB93O8TW6EI4beJey55EnPK@redis-15509.c91.us-east-1-3.ec2.redns.redis-cloud.com:15509');
 
 // -------------------- CONFIGURAÇÃO DO TRANSPORTER --------------------
+// -------------------- CONFIGURAÇÃO DO TRANSPORTER --------------------
 function createTransporter() {
   return nodemailer.createTransport({
-    host: 'ca806-cp.fmhospeda.com', // servidor SMTP do cPanel
-    port: 465, // usa SSL
-    secure: true, // true para SSL
+    host: 'smtp.hostinger.com', // servidor SMTP Hostinger
+    port: 465,                  // SSL
+    secure: true,               // true para SSL na porta 465
     auth: {
-      user: 'atende@worldflick.site', // seu e-mail completo
-      pass: 'Cyn10203040@', // senha do e-mail
+      user: 'visionplayoficial@visionplay.lat', // seu e-mail Hostinger
+      pass: '130829Be@16',                     // senha do e-mail
     },
     tls: {
       rejectUnauthorized: false // evita erros de certificado
     }
   });
 }
+
+const transporter = createTransporter();
+
 
 const transporter = createTransporter();
 
@@ -123,7 +127,7 @@ SITE OFICIAL: www.worldfick.site
 `;
 
   const mailOptions = {
-    from: 'atende@worldflick.site',
+    from: 'visionplayoficial@visionplay.la',
     to: email,
     subject: 'Seu Acesso ao WorldFlick',
     text: corpo,
