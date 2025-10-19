@@ -9,7 +9,7 @@ function obterPacote(plano, valorTransacao, packageId) {
     // 🔥 Novos pacotes (Oferta R$)
     { packageId: "Kr6LJjLv9m", serverPackageId: "8", nome: "0️⃣1️⃣ MÊS C/ ADULTO - 3 TELAS", valor: 14.9 },
     { packageId: "ayb1BxDPR9", serverPackageId: "8", nome: "0️⃣3️⃣ MESES C/ ADULTO - 3 TELAS", valor: 34.99 },
-    { packageId: "7V01paLdO4", serverPackageId: "8", nome: "0️⃣6️⃣ MESES C/ ADULTO - 3 TELAS", valor: 104.9 },
+    { packageId: "7V01paLdO4", serverPackageId: "8", nome: "0️⃣6️⃣ MESES C/ ADULTO - 3 TELAS", valor: 68.9 },
     { packageId: "Yxl1jEBWMj", serverPackageId: "8", nome: "1️⃣2️⃣ MESES PROMOCIONAL S/ ADULTO - 3 TELAS", valor: 179.9 },
 
 
